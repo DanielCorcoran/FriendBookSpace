@@ -1,0 +1,9 @@
+<h1>This is your feed</h1>
+
+<% posts.forEach(post => { %>
+    <div>
+        <h3><%= post.author %></h3>
+        <p><%= post.status %></p>
+    </div>
+    <br>
+<% }); %>
