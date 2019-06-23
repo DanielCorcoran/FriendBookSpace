@@ -1,2 +1,2 @@
 # FriendBookSpace
-An alternative social medial platform written in JS
+An alternative social media platform written in JS
