@@ -1,0 +1,41 @@
+<% include partials/header %>
+
+<div class="container">
+    <header class="jumbotron">
+        <div class="container">
+            <h1>FriendStream</h1>
+            <p>See what your friends are up to</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="row">
+            <h1 style="text-align: center;">What's on your mind?</h1>
+    
+            <div style="width: 30%; margin: 2rem auto;">
+                <form action="/feed" method="POST">
+                    <div class="form-group">
+                        <input class="form-control" type="text" name="status" placeholder="status">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-lg btn-primary btn-block">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <% posts.forEach(post => { %>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <h3><%= post.author %></h3>
+                <p><%= post.status %></p>
+                <p>
+                    <a href="/feed/<%= post._id %>" class="btn btn-primary">Comment</a>
+                </p>
+            </div>
+        </div>
+    <% }); %>
+</div>
+
+<% include partials/footer %>

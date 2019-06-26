@@ -46,7 +46,7 @@ app.get("/feed", (req, res) => {
         if (err) {
             console.log(err);
         } else {
-            res.render("feed", {posts: status});
+            res.render("index", {posts: status});
         }
     });
 });
@@ -65,8 +65,14 @@ app.post("/feed", (req, res) => {
     // posts.push(newStatus);
 });
 
-app.get("/feed/new", (req, res) => {
-    res.render("new.ejs");
+app.get("/feed/:id", (req, res) => {
+    Status.findById(req.params.id, (err, foundStatus) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.render("view", {status: foundStatus});
+        }
+    });
 });
 
 app.listen(process.env.PORT || 8080, () => { 
