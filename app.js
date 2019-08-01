@@ -1,52 +1,26 @@
 const express = require("express");
       app = express(),
       bodyParser = require("body-parser"),
-      mongoose = require("mongoose");
+      mongoose = require("mongoose"),
+      Status = require("./models/status"),
+      Comment = require("./models/comment"),
+      seedDB = require("./seeds");
 
+seedDB();
 mongoose.connect("mongodb://localhost/FriendBookSpace", {useNewUrlParser: true});
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
-
-const statusSchema = new mongoose.Schema({
-    author: String,
-    status: String
-});
-
-const Status = mongoose.model("Status", statusSchema);
-
-/*
-Status.create(
-    {
-        author: "Steve",
-        status: "Doing things"
-    }, (err, status) => {
-        if (err)
-        {
-            console.log(err);
-        } else {
-            console.log("New status: ");
-            console.log(status);
-        }
-    }
-);
-
-const posts = [
-    {author: "Steve", status: "Doing things"},
-    {author: "Jake", status: "Enjoying the great weather"},
-    {author: "Jess", status: "Dig up! - Albert Einstein"}
-];
-*/
 
 app.get("/", (req, res) => {
     res.render("landing");
 });
 
 app.get("/feed", (req, res) => {
-    Status.find({}, (err, status) => {
+    Status.find({}).populate("comments").exec((err, statuses) => {
         if (err) {
             console.log(err);
         } else {
-            res.render("index", {posts: status});
+            res.render("index", {statuses: statuses});
         }
     });
 });
@@ -62,15 +36,33 @@ app.post("/feed", (req, res) => {
             res.redirect("/feed");
         }
     });
-    // posts.push(newStatus);
 });
 
 app.get("/feed/:id", (req, res) => {
-    Status.findById(req.params.id, (err, foundStatus) => {
+    Status.findById(req.params.id).populate("comments").exec((err, foundStatus) => {
         if (err) {
             console.log(err);
         } else {
             res.render("view", {status: foundStatus});
+        }
+    });
+});
+
+app.post("/feed/:id", (req,res) => {
+    Status.findById(req.params.id, (err, status) => {
+        if (err) {
+            console.log(err);
+            res.redirect("/feed");
+        } else {
+            Comment.create(req.body.comment, (err, comment) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    status.comments.push(comment);
+                    status.save();
+                    res.redirect("/feed/" + status._id);
+                }
+            });
         }
     });
 });

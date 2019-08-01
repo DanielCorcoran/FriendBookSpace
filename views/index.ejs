@@ -25,16 +25,28 @@
         </div>
     </div>
 
-    <% posts.forEach(post => { %>
+    <% statuses.forEach(status => { %>
         <div class="panel panel-default">
             <div class="panel-body">
-                <h3><%= post.author %></h3>
-                <p><%= post.status %></p>
+                <h3><%= status.author %></h3>
+                <p><%= status.status %></p>
                 <p>
-                    <a href="/feed/<%= post._id %>" class="btn btn-primary">Comment</a>
+                    <a href="/feed/<%= status._id %>" class="btn btn-primary">Comment</a>
                 </p>
             </div>
         </div>
+        <% if (status.comments.length) { %>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <% status.comments.forEach((comment) => { %>
+                        <% console.log(comment) %>
+                        <p>
+                            <strong><%= comment.author %></strong> - <%= comment.text %>
+                        </p>
+                    <% }); %>
+                </div>
+            </div>
+        <% } %>
     <% }); %>
 </div>
 
