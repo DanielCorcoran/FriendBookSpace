@@ -10,7 +10,7 @@ const express = require("express"),
 const feedRoutes = require("./routes/feed"),
       indexRoutes = require("./routes/index");
 
-seedDB();
+// seedDB();
 mongoose.connect("mongodb://localhost/FriendBookSpace", {useNewUrlParser: true});
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");

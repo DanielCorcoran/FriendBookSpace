@@ -14,8 +14,11 @@ router.get("/", isLoggedIn, (req, res) => {
 });
 
 router.post("/", isLoggedIn, (req, res) => {
-    const author = "Someone";
     const status = req.body.status;
+    const author = {
+        id: req.user._id,
+        username: req.user.username
+    };
     const newStatus = {author: author, status: status};
     Status.create(newStatus, (err, newStatus) => {
         if (err) {
@@ -46,6 +49,9 @@ router.post("/:id", isLoggedIn, (req,res) => {
                 if (err) {
                     console.log(err);
                 } else {
+                    comment.author.id = req.user._id;
+                    comment.author.username = req.user.username;
+                    comment.save();
                     status.comments.push(comment);
                     status.save();
                     res.redirect("/feed/" + status._id);

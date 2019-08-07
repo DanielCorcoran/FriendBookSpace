@@ -28,7 +28,7 @@
     <% statuses.forEach(status => { %>
         <div class="panel panel-default">
             <div class="panel-body">
-                <h3><%= status.author %></h3>
+                <h3><%= status.author.username %></h3>
                 <p><%= status.status %></p>
                 <p>
                     <a href="/feed/<%= status._id %>" class="btn btn-primary">Comment</a>
@@ -41,7 +41,7 @@
                     <% status.comments.forEach((comment) => { %>
                         <% console.log(comment) %>
                         <p>
-                            <strong><%= comment.author %></strong> - <%= comment.text %>
+                            <strong><%= comment.author.username %></strong> - <%= comment.text %>
                         </p>
                     <% }); %>
                 </div>
