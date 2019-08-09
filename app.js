@@ -4,6 +4,7 @@ const express = require("express"),
       mongoose = require("mongoose"),
       passport = require("passport"),
       LocalStrategy = require("passport-local"),
+      methodOverride = require("method-override"),
       User = require("./models/user"),
       seedDB = require("./seeds");
 
@@ -12,8 +13,10 @@ const feedRoutes = require("./routes/feed"),
 
 // seedDB();
 mongoose.connect("mongodb://localhost/FriendBookSpace", {useNewUrlParser: true});
+mongoose.set("useFindAndModify", false);
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
+app.use(methodOverride("_method"));
 
 app.use(require("express-session")({
     secret: "FriendBookSpace will revolutionize social media!",

@@ -3,7 +3,7 @@
 <h1>This is the view template</h1>
 
 <h3><%= status.author.username %></h3>
-<p><%= status.status %></p>
+<p><%= status.text %><a href="/feed/<%= status._id %>/edit" class="btn btn-warning">Edit</a></p>
 
 <% status.comments.forEach((comment) => { %>
     <p>

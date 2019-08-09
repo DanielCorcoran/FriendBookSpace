@@ -15,7 +15,7 @@
             <div style="width: 30%; margin: 2rem auto;">
                 <form action="/feed" method="POST">
                     <div class="form-group">
-                        <input class="form-control" type="text" name="status" placeholder="status">
+                        <input class="form-control" type="text" name="text" placeholder="status">
                     </div>
                     <div class="form-group">
                         <button class="btn btn-lg btn-primary btn-block">Submit</button>
@@ -29,7 +29,7 @@
         <div class="panel panel-default">
             <div class="panel-body">
                 <h3><%= status.author.username %></h3>
-                <p><%= status.status %></p>
+                <p><%= status.text %></p>
                 <p>
                     <a href="/feed/<%= status._id %>" class="btn btn-primary">Comment</a>
                 </p>
@@ -39,7 +39,6 @@
             <div class="panel panel-default">
                 <div class="panel-body">
                     <% status.comments.forEach((comment) => { %>
-                        <% console.log(comment) %>
                         <p>
                             <strong><%= comment.author.username %></strong> - <%= comment.text %>
                         </p>

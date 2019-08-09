@@ -14,12 +14,12 @@ router.get("/", isLoggedIn, (req, res) => {
 });
 
 router.post("/", isLoggedIn, (req, res) => {
-    const status = req.body.status;
+    const text = req.body.text;
     const author = {
         id: req.user._id,
         username: req.user.username
     };
-    const newStatus = {author: author, status: status};
+    const newStatus = {author: author, text: text};
     Status.create(newStatus, (err, newStatus) => {
         if (err) {
             console.log(err);
@@ -57,6 +57,26 @@ router.post("/:id", isLoggedIn, (req,res) => {
                     res.redirect("/feed/" + status._id);
                 }
             });
+        }
+    });
+});
+
+router.get("/:id/edit", (req, res) => {
+    Status.findById(req.params.id, (err, foundStatus) => {
+        if (err) {
+            res.redirect("/feed");
+        } else {
+            res.render("edit", {status: foundStatus});
+        }
+    });
+});
+
+router.put("/:id", (req, res) => {
+    Status.findByIdAndUpdate(req.params.id, {text: req.body.text}, (err, updatedStatus) => {
+        if (err) {
+            res.redirect("/feed");
+        } else {
+            res.redirect("/feed/" + req.params.id);
         }
     });
 });
