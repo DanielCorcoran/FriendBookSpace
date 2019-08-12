@@ -3,7 +3,13 @@
 <h1>This is the view template</h1>
 
 <h3><%= status.author.username %></h3>
-<p><%= status.text %><a href="/feed/<%= status._id %>/edit" class="btn btn-warning">Edit</a></p>
+<p><%= status.text %></p>
+<% if (currentUser && status.author.id.equals(currentUser._id)) { %>
+    <a href="/feed/<%= status._id %>/edit" class="btn btn-warning">Edit</a>
+    <form action="/feed/<%= status.id %>?_method=DELETE" method="POST">
+        <button class="btn btn-danger">Delete Status</button>
+    </form>
+<% } %>
 
 <% status.comments.forEach((comment) => { %>
     <p>

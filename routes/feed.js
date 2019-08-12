@@ -61,17 +61,13 @@ router.post("/:id", isLoggedIn, (req,res) => {
     });
 });
 
-router.get("/:id/edit", (req, res) => {
+router.get("/:id/edit", checkStatusOwnership, (req, res) => {
     Status.findById(req.params.id, (err, foundStatus) => {
-        if (err) {
-            res.redirect("/feed");
-        } else {
-            res.render("edit", {status: foundStatus});
-        }
+        res.render("edit", {status: foundStatus});
     });
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", checkStatusOwnership, (req, res) => {
     Status.findByIdAndUpdate(req.params.id, {text: req.body.text}, (err, updatedStatus) => {
         if (err) {
             res.redirect("/feed");
@@ -81,11 +77,39 @@ router.put("/:id", (req, res) => {
     });
 });
 
+router.delete("/:id", checkStatusOwnership, (req, res) => {
+    Status.findByIdAndRemove(req.params.id, (err) => {
+        if (err) {
+            res.redirect("/feed");
+        } else {
+            res.redirect("/feed");
+        }
+    });
+});
+
 function isLoggedIn(req, res, next){
     if (req.isAuthenticated()) {
         return next();
     }
     res.redirect("/login");
+}
+
+function checkStatusOwnership(req, res, next) {
+    if (req.isAuthenticated()) {
+        Status.findById(req.params.id, (err, foundStatus) => {
+            if (err) {
+                res.redirect("back");
+            } else {
+                if (foundStatus.author.id.equals(req.user._id)) {
+                    next();
+                } else {
+                    res.redirect("back");
+                }
+            }
+        });
+    } else {
+        res.redirect("back");
+    }
 }
 
 module.exports = router;
