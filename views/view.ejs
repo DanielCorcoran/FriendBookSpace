@@ -15,6 +15,7 @@
     <p>
         <strong><%= comment.author.username %></strong> - <%= comment.text %>
     </p>
+    <a href="/feed/<%= status._id %>/<%= comment._id %>/edit" class="btn btn-xs btn-warning">Edit</a>
 <% }); %>
 
 <div class="container">

@@ -63,7 +63,7 @@ router.post("/:id", isLoggedIn, (req,res) => {
 
 router.get("/:id/edit", checkStatusOwnership, (req, res) => {
     Status.findById(req.params.id, (err, foundStatus) => {
-        res.render("edit", {status: foundStatus});
+        res.render("editStatus", {status: foundStatus});
     });
 });
 
@@ -83,6 +83,26 @@ router.delete("/:id", checkStatusOwnership, (req, res) => {
             res.redirect("/feed");
         } else {
             res.redirect("/feed");
+        }
+    });
+});
+
+router.get("/:id/:comment_id/edit", (req, res) => {
+    Comment.findById(req.params.comment_id, (err, foundComment) => {
+        if (err) {
+            res.redirect("back");
+        } else {
+            res.render("editComment", {status_id: req.params.id, comment: foundComment});
+        }
+    });
+});
+
+router.put("/:id/:comment_id", (req, res) => {
+    Comment.findByIdAndUpdate(req.params.comment_id, {text: req.body.text}, (err, updatedComment) => {
+        if (err) {
+            res.redirect("back");
+        } else {
+            res.redirect("/feed/" + req.params.id);
         }
     });
 });
