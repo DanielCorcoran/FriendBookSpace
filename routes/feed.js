@@ -87,7 +87,7 @@ router.delete("/:id", checkStatusOwnership, (req, res) => {
     });
 });
 
-router.get("/:id/:comment_id/edit", (req, res) => {
+router.get("/:id/:comment_id/edit", checkCommentOwnership, (req, res) => {
     Comment.findById(req.params.comment_id, (err, foundComment) => {
         if (err) {
             res.redirect("back");
@@ -97,8 +97,18 @@ router.get("/:id/:comment_id/edit", (req, res) => {
     });
 });
 
-router.put("/:id/:comment_id", (req, res) => {
+router.put("/:id/:comment_id", checkCommentOwnership, (req, res) => {
     Comment.findByIdAndUpdate(req.params.comment_id, {text: req.body.text}, (err, updatedComment) => {
+        if (err) {
+            res.redirect("back");
+        } else {
+            res.redirect("/feed/" + req.params.id);
+        }
+    });
+});
+
+router.delete("/:id/:comment_id", checkCommentOwnership, (req, res) => {
+    Comment.findByIdAndRemove(req.params.comment_id, (err) => {
         if (err) {
             res.redirect("back");
         } else {
@@ -121,6 +131,24 @@ function checkStatusOwnership(req, res, next) {
                 res.redirect("back");
             } else {
                 if (foundStatus.author.id.equals(req.user._id)) {
+                    next();
+                } else {
+                    res.redirect("back");
+                }
+            }
+        });
+    } else {
+        res.redirect("back");
+    }
+}
+
+function checkCommentOwnership(req, res, next) {
+    if (req.isAuthenticated()) {
+        Comment.findById(req.params.comment_id, (err, foundComment) => {
+            if (err) {
+                res.redirect("back");
+            } else {
+                if (foundComment.author.id.equals(req.user._id)) {
                     next();
                 } else {
                     res.redirect("back");

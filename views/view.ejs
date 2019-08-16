@@ -15,7 +15,12 @@
     <p>
         <strong><%= comment.author.username %></strong> - <%= comment.text %>
     </p>
-    <a href="/feed/<%= status._id %>/<%= comment._id %>/edit" class="btn btn-xs btn-warning">Edit</a>
+    <% if (currentUser && comment.author.id.equals(currentUser._id)) { %>
+        <a href="/feed/<%= status._id %>/<%= comment._id %>/edit" class="btn btn-xs btn-warning">Edit</a>
+        <form action="/feed/<%= status._id %>/<%= comment._id %>?_method=DELETE" method="POST">
+            <button class="btn btn-xs btn-danger">Delete</button>
+        </form>
+    <% } %>
 <% }); %>
 
 <div class="container">
