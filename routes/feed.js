@@ -43,7 +43,7 @@ router.get("/:id", middleware.isLoggedIn, (req, res) => {
 router.post("/:id", middleware.isLoggedIn, (req,res) => {
     Status.findById(req.params.id, (err, status) => {
         if (err) {
-            console.log(err);
+            req.flash("error", "Something went wrong");
             res.redirect("/feed");
         } else {
             Comment.create(req.body.comment, (err, comment) => {
@@ -55,6 +55,7 @@ router.post("/:id", middleware.isLoggedIn, (req,res) => {
                     comment.save();
                     status.comments.push(comment);
                     status.save();
+                    req.flash("success", "Successfully added comment");
                     res.redirect("/feed/" + status._id);
                 }
             });
@@ -113,6 +114,7 @@ router.delete("/:id/:comment_id", middleware.checkCommentOwnership, (req, res) =
         if (err) {
             res.redirect("back");
         } else {
+            req.flash("success", "Comment deleted");
             res.redirect("/feed/" + req.params.id);
         }
     });
