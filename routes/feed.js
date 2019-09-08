@@ -4,7 +4,7 @@ const express = require("express"),
       Comment = require("../models/comment"),
       middleware = require("../middleware");
 
-router.get("/", middleware.isLoggedIn, (req, res) => {
+router.get("/", (req, res) => {
     Status.find({}).populate("comments").exec((err, statuses) => {
         if (err) {
             console.log(err);
