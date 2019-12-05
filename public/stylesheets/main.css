@@ -1,0 +1,21 @@
+.status-outline {
+    display: flex;
+    justify-content: center;
+}
+
+.comment-button {
+    display: inline-block;
+}
+
+#comment {
+    margin: auto 5% 1em;
+}
+
+#status-form {
+    width: 30%;
+    margin: 2rem auto;
+}
+
+#status-prompt {
+    text-align: center;
+}
