@@ -1,7 +1,5 @@
 <% include partials/header %>
 
-<h1>This is the view template</h1>
-
 <h3><%= status.author.username %></h3>
 <p><%= status.text %></p>
 <% if (currentUser && status.author.id.equals(currentUser._id)) { %>
