@@ -1,11 +1,9 @@
 <% include partials/header %>
 
 <div class="container">
-  <% if (currentUser) { %>
   <div class="container">
     <div class="row">
       <h1 id="status-prompt">What's on your mind?</h1>
-
       <div id="status-form">
         <form action="/feed" method="POST"> 
           <div class="form-group">
@@ -23,50 +21,53 @@
       </div>
     </div>
   </div>
-  <% } %> <% statuses.forEach(status => { %>
-  <div class="status-outline">
-    <div class="panel panel-default col-md-6" id="initial-comment">
-      <div class="panel-body">
-        <h3><%= status.author.username %></h3>
-        <p><%= status.text %></p>
-        <% if (currentUser) { %>
-        <a href="/feed/<%= status._id %>" class="btn btn-primary">Comment</a>
-        <% if (status.author.id.equals(currentUser._id)) { %>
-        <form
-          class="comment-button"
-          action="/feed/<%= status._id %>?_method=DELETE"
-          method="POST"
-        >
-          <button class="btn btn-danger">Delete</button>
-        </form>
-        <% } %> <% } %>
-      </div>
-      <% if (status.comments.length) { %> <% status.comments.forEach(comment => { %>
-      <div class="panel panel-default" id="comment">
+  
+  <% statuses.forEach(status => { %>
+    <div class="status-outline">
+      <div class="panel panel-default col-md-6" id="initial-comment">
         <div class="panel-body">
-          <p>
-            <strong><%= comment.author.username %></strong> - <%= comment.text
-            %>
-          </p>
-          <% if (currentUser && comment.author.id.equals(currentUser._id)) { %>
-          <a
-            href="/feed/<%= status._id %>/<%= comment._id %>/edit"
-            class="btn btn-xs btn-warning"
-            >Edit</a
-          >
-          <form
-            class="comment-button"
-            action="/feed/<%= status._id %>/<%= comment._id %>?_method=DELETE"
-            method="POST"
-          >
-            <button class="btn btn-xs btn-danger">Delete</button>
-          </form>
+          <h3><a href="/<%= status.author.id %>"><%= status.author.username %></a></h3>
+          <p><%= status.text %></p>
+          <% if (currentUser) { %>
+            <a href="/feed/<%= status._id %>" class="btn btn-primary">Comment</a>
+            <% if (status.author.id.equals(currentUser._id)) { %>
+              <form
+                class="comment-button"
+                action="/feed/<%= status._id %>?_method=DELETE"
+                method="POST"
+              >
+                <button class="btn btn-danger">Delete</button>
+              </form>
+            <% } %>
           <% } %>
         </div>
+        <% if (status.comments.length) { %>
+          <% status.comments.forEach(comment => { %>
+            <div class="panel panel-default" id="comment">
+              <div class="panel-body">
+                <p>
+                  <strong><%= comment.author.username %></strong> - <%= comment.text %>
+                </p>
+                <% if (currentUser && comment.author.id.equals(currentUser._id)) { %>
+                  <a
+                    href="/feed/<%= status._id %>/<%= comment._id %>/edit"
+                    class="btn btn-xs btn-warning"
+                    >Edit</a
+                  >
+                  <form
+                    class="comment-button"
+                    action="/feed/<%= status._id %>/<%= comment._id %>?_method=DELETE"
+                    method="POST"
+                  >
+                    <button class="btn btn-xs btn-danger">Delete</button>
+                  </form>
+                <% } %>
+              </div>
+            </div>
+          <% }); %>
+        <% } %>
       </div>
-      <% }); %> <% } %>
     </div>
-  </div>
   <% }); %>
 </div>
 
