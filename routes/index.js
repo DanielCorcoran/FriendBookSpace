@@ -55,20 +55,67 @@ router.get("/:userId", middleware.isLoggedIn, (req, res) => {
 			req.flash("error", "Something went wrong");
 			res.redirect("/feed");
 		} else {
-			const user = foundUser;
-			Status.find({ "author.id": user })
+			Status.find({ "author.id": foundUser })
 				.populate("comments")
 				.exec((err, statuses) => {
 					if (err) {
 						req.flash("error", "Something went wrong");
 						res.redirect("/feed");
 					} else {
-						res.render("user", {
-							statuses: statuses,
-							pageOwner: user
-						});
+						let isFollowing = false;
+						User.findOne(
+							{ _id: req.user._id, following: foundUser },
+							(err, followedUser) => {
+								if (err) {
+									req.flash("error", "Something went wrong");
+									res.redirect("/feed");
+								} else {
+									if (followedUser || foundUser.equals(req.user)) {
+										isFollowing = true;
+									}
+									console.log(followedUser);
+									console.log(isFollowing);
+									res.render("user", {
+										statuses: statuses,
+										pageOwner: foundUser,
+										isFollowing: isFollowing
+									});
+								}
+							}
+						);
 					}
 				});
+		}
+	});
+});
+
+router.post("/follow/:userId", middleware.isLoggedIn, (req, res) => {
+	User.findById(req.params.userId, (err, foundUser) => {
+		if (err) {
+			req.flash("error", "Something went wrong");
+			res.redirect("/feed");
+		} else {
+			User.findOne(
+				{ _id: req.user._id, following: foundUser },
+				(err, followedUser) => {
+					if (err) {
+						req.flash("error", "Something went wrong");
+						res.redirect("/feed");
+					} else {
+						if (!followedUser && !foundUser.equals(req.user)) {
+							req.user.following.push(foundUser);
+							req.user.save();
+							req.flash(
+								"success",
+								"You are now following " + foundUser.username
+							);
+							res.redirect("/feed");
+						} else {
+							res.redirect("/feed");
+						}
+					}
+				}
+			);
 		}
 	});
 });

@@ -2,6 +2,14 @@
 
 <h1><%= pageOwner.username %></h1>
 
+<% if (!isFollowing) { %>
+  <form action="/follow/<%= pageOwner._id %>" method="POST"> 
+    <div class="form-group">
+      <button class="btn btn-lg btn-primary btn-block">Follow</button>
+    </div>
+  </form>
+<% } %>
+
 <% statuses.forEach(status => { %>
   <div class="status-outline">
     <div class="panel panel-default col-md-6" id="initial-comment">
