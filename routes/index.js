@@ -64,17 +64,16 @@ router.get("/:userId", middleware.isLoggedIn, (req, res) => {
 					} else {
 						let isFollowing = false;
 						User.findOne(
-							{ _id: req.user._id, following: foundUser },
+							{ _id: req.user._id, following: req.params.userId },
 							(err, followedUser) => {
 								if (err) {
 									req.flash("error", "Something went wrong");
 									res.redirect("/feed");
 								} else {
+									// You shouldn't be able to follow yourself
 									if (followedUser || foundUser.equals(req.user)) {
 										isFollowing = true;
 									}
-									console.log(followedUser);
-									console.log(isFollowing);
 									res.render("user", {
 										statuses: statuses,
 										pageOwner: foundUser,
@@ -89,26 +88,54 @@ router.get("/:userId", middleware.isLoggedIn, (req, res) => {
 	});
 });
 
-router.post("/follow/:userId", middleware.isLoggedIn, (req, res) => {
-	User.findById(req.params.userId, (err, foundUser) => {
+router.put("/follow/:userId", middleware.isLoggedIn, (req, res) => {
+	User.findById(req.params.userId, (err, userToFollow) => {
 		if (err) {
 			req.flash("error", "Something went wrong");
 			res.redirect("/feed");
 		} else {
 			User.findOne(
-				{ _id: req.user._id, following: foundUser },
+				{ _id: req.user._id, following: userToFollow },
 				(err, followedUser) => {
 					if (err) {
 						req.flash("error", "Something went wrong");
 						res.redirect("/feed");
 					} else {
-						if (!followedUser && !foundUser.equals(req.user)) {
-							req.user.following.push(foundUser);
+						if (!followedUser && !userToFollow.equals(req.user)) {
+							req.user.following.push(userToFollow);
 							req.user.save();
 							req.flash(
 								"success",
-								"You are now following " + foundUser.username
+								"You are now following " + userToFollow.username
 							);
+							res.redirect("/feed");
+						} else {
+							res.redirect("/feed");
+						}
+					}
+				}
+			);
+		}
+	});
+});
+
+router.delete("/follow/:userId", middleware.isLoggedIn, (req, res) => {
+	User.findById(req.params.userId, (err, userToUnfollow) => {
+		if (err) {
+			req.flash("error", "Something went wrong");
+			res.redirect("/feed");
+		} else {
+			User.findOne(
+				{ _id: req.user._id, following: userToUnfollow },
+				(err, foundUser) => {
+					if (err) {
+						req.flash("error", "Something went wrong");
+						res.redirect("/feed");
+					} else {
+						if (foundUser) {
+							req.user.following.pull(req.params.userId);
+							req.user.save();
+							req.flash("success", "You unfollowed " + userToUnfollow.username);
 							res.redirect("/feed");
 						} else {
 							res.redirect("/feed");

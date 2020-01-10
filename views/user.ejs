@@ -3,9 +3,15 @@
 <h1><%= pageOwner.username %></h1>
 
 <% if (!isFollowing) { %>
-  <form action="/follow/<%= pageOwner._id %>" method="POST"> 
+  <form action="/follow/<%= pageOwner._id %>?_method=PUT" method="POST"> 
     <div class="form-group">
       <button class="btn btn-lg btn-primary btn-block">Follow</button>
+    </div>
+  </form>
+<% } else if (!pageOwner.equals(currentUser)) { %>
+  <form action="/follow/<%= pageOwner._id %>?_method=DELETE" method="POST"> 
+    <div class="form-group">
+      <button class="btn btn-lg btn-primary btn-block">Unfollow</button>
     </div>
   </form>
 <% } %>
