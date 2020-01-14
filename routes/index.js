@@ -49,7 +49,7 @@ router.get("/logout", (req, res) => {
 	res.redirect("/");
 });
 
-router.get("/:userId", middleware.isLoggedIn, (req, res) => {
+router.get("/users/:userId", middleware.isLoggedIn, (req, res) => {
 	User.findById(req.params.userId, (err, foundUser) => {
 		if (err) {
 			req.flash("error", "Something went wrong");

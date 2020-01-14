@@ -11,7 +11,19 @@ router.get("/", middleware.isLoggedIn, (req, res) => {
 			if (err) {
 				console.log(err);
 			} else {
-				res.render("index", { statuses: statuses, currentUser: req.user });
+				const statusesToPass = [];
+				statuses.forEach(e => {
+					if (
+						req.user.following.includes(e.author.id) ||
+						e.author.id.equals(req.user._id)
+					) {
+						statusesToPass.push(e);
+					}
+				});
+				res.render("index", {
+					statuses: statusesToPass,
+					currentUser: req.user
+				});
 			}
 		});
 });
