@@ -56,6 +56,7 @@ router.get("/users/:userId", middleware.isLoggedIn, (req, res) => {
 			res.redirect("/feed");
 		} else {
 			Status.find({ "author.id": foundUser })
+				.sort({ createdAt: -1 })
 				.populate("comments")
 				.exec((err, statuses) => {
 					if (err) {

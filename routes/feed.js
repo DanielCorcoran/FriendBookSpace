@@ -1,11 +1,13 @@
 const express = require("express"),
 	router = express.Router(),
+	User = require("../models/user"),
 	Status = require("../models/status"),
 	Comment = require("../models/comment"),
 	middleware = require("../middleware");
 
 router.get("/", middleware.isLoggedIn, (req, res) => {
 	Status.find({})
+		.sort({ createdAt: -1 })
 		.populate("comments")
 		.exec((err, statuses) => {
 			if (err) {
@@ -34,7 +36,7 @@ router.post("/", middleware.isLoggedIn, (req, res) => {
 		id: req.user._id,
 		username: req.user.username
 	};
-	const newStatus = { author: author, text: text };
+	const newStatus = { author: author, text: text, createdAt: new Date() };
 	Status.create(newStatus, (err, newStatus) => {
 		if (err) {
 			console.log(err);
