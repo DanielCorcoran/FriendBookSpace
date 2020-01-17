@@ -7,6 +7,12 @@
 	display: inline-block;
 }
 
+.user-list {
+	display: flex;
+	justify-content: center;
+	text-align: center;
+}
+
 #comment {
 	margin: auto 5% 1em;
 }

@@ -1,0 +1,22 @@
+<% include partials/header %>
+
+<% if (!isFollowingSomeone) { %>
+  <h2>You are not following anyone</h2>
+<% } %>
+  <h2>Find some people to follow</h2>
+
+  <div class="container">
+    <% userList.forEach(user => { %>
+      <% if (!user.equals(currentUser)) { %>
+        <div class="user-list">
+          <div class="panel panel-default col-md-6">
+            <div class="panel-body">
+              <h3><a href="/users/<%= user._id %>"><%= user.username %></a></h3>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    <% }); %>
+  </div>
+
+<% include partials/footer %>

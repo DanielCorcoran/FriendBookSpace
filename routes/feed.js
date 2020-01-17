@@ -12,6 +12,21 @@ router.get("/", middleware.isLoggedIn, (req, res) => {
 		.exec((err, statuses) => {
 			if (err) {
 				console.log(err);
+			} else if (req.user.following.length === 0) {
+				User.find({})
+					.limit(20)
+					.exec((err, userList) => {
+						if (err) {
+							req.flash("error", "Something went wrong");
+							res.redirect("/");
+						} else {
+							res.render("findUsers", {
+								currentUser: req.user,
+								userList: userList,
+								isFollowingSomeone: false
+							});
+						}
+					});
 			} else {
 				const statusesToPass = [];
 				statuses.forEach(e => {
