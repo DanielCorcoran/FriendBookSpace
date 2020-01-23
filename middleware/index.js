@@ -25,8 +25,9 @@ middlewareObj.checkStatusOwnership = (req, res, next) => {
 };
 
 middlewareObj.checkCommentOwnership = (req, res, next) => {
+	console.log(req.params);
 	if (req.isAuthenticated()) {
-		Comment.findById(req.params.comment_id, (err, foundComment) => {
+		Comment.findById(req.params.commentId, (err, foundComment) => {
 			if (err) {
 				req.flash("error", "Comment not found");
 				res.redirect("back");

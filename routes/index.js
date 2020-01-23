@@ -148,4 +148,53 @@ router.delete("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 	});
 });
 
+router.get("/findusers", middleware.isLoggedIn, (req, res) => {
+	if (req.query.username) {
+		User.find(
+			{ username: { $regex: ".*" + req.query.username } },
+			(err, userList) => {
+				if (err) {
+					console.log(err);
+				} else if (!userList.length) {
+					req.flash("error", "No users found");
+					res.redirect("/feed");
+				} else {
+					const userListToSend = [];
+					userList.forEach(user => {
+						if (!req.user.following.includes(user._id)) {
+							userListToSend.push(user);
+						}
+					});
+					res.render("findUsers", {
+						currentUser: req.user,
+						userList: userListToSend,
+						isFollowingSomeone: true
+					});
+				}
+			}
+		);
+	} else {
+		User.find({})
+			.limit(20)
+			.exec((err, userList) => {
+				if (err) {
+					req.flash("error", "Something went wrong");
+					res.redirect("/");
+				} else {
+					const userListToSend = [];
+					userList.forEach(user => {
+						if (!req.user.following.includes(user._id)) {
+							userListToSend.push(user);
+						}
+					});
+					res.render("findUsers", {
+						currentUser: req.user,
+						userList: userListToSend,
+						isFollowingSomeone: true
+					});
+				}
+			});
+	}
+});
+
 module.exports = router;

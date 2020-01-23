@@ -12,7 +12,7 @@ router.get("/", middleware.isLoggedIn, (req, res) => {
 		.exec((err, statuses) => {
 			if (err) {
 				console.log(err);
-			} else if (req.user.following.length === 0) {
+			} else if (!req.user.following.length) {
 				User.find({})
 					.limit(20)
 					.exec((err, userList) => {
@@ -127,10 +127,10 @@ router.delete("/:id", middleware.checkStatusOwnership, (req, res) => {
 });
 
 router.get(
-	"/:id/:comment_id/edit",
+	"/:id/:commentId/edit",
 	middleware.checkCommentOwnership,
 	(req, res) => {
-		Comment.findById(req.params.comment_id, (err, foundComment) => {
+		Comment.findById(req.params.commentId, (err, foundComment) => {
 			if (err) {
 				res.redirect("back");
 			} else {
@@ -143,9 +143,9 @@ router.get(
 	}
 );
 
-router.put("/:id/:comment_id", middleware.checkCommentOwnership, (req, res) => {
+router.put("/:id/:commentId", middleware.checkCommentOwnership, (req, res) => {
 	Comment.findByIdAndUpdate(
-		req.params.comment_id,
+		req.params.commentId,
 		{ text: req.body.text },
 		(err, updatedComment) => {
 			if (err) {
@@ -158,10 +158,10 @@ router.put("/:id/:comment_id", middleware.checkCommentOwnership, (req, res) => {
 });
 
 router.delete(
-	"/:id/:comment_id",
+	"/:id/:commentId",
 	middleware.checkCommentOwnership,
 	(req, res) => {
-		Comment.findByIdAndRemove(req.params.comment_id, err => {
+		Comment.findByIdAndRemove(req.params.commentId, err => {
 			if (err) {
 				res.redirect("back");
 			} else {

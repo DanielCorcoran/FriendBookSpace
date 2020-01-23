@@ -17,6 +17,11 @@
 	margin: auto 5% 1em;
 }
 
+#find-user-btn {
+	display: flex;
+	justify-content: center;
+}
+
 #status-form {
 	width: 30%;
 	margin: 2rem auto;
