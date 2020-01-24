@@ -7,6 +7,15 @@
 	display: inline-block;
 }
 
+.page-main-action {
+	width: 30%;
+	margin: 2rem auto;
+}
+
+.top-of-page-text {
+	text-align: center;
+}
+
 .user-list {
 	display: flex;
 	justify-content: center;
@@ -20,13 +29,4 @@
 #find-user-btn {
 	display: flex;
 	justify-content: center;
-}
-
-#status-form {
-	width: 30%;
-	margin: 2rem auto;
-}
-
-#status-prompt {
-	text-align: center;
 }
