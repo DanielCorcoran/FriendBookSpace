@@ -134,10 +134,20 @@ router.get(
 			if (err) {
 				res.redirect("back");
 			} else {
-				res.render("editComment", {
-					status_id: req.params.id,
-					comment: foundComment
-				});
+				Status.findById(req.params.id)
+					.populate("comments")
+					.exec((err, foundStatus) => {
+						if (err) {
+							res.redirect("back");
+						} else {
+							res.render("editComment", {
+								// status_id: req.params.id,
+								status: foundStatus,
+								commentToEdit: foundComment,
+								currentUser: req.user
+							});
+						}
+					});
 			}
 		});
 	}

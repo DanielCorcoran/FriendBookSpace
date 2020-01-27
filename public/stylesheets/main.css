@@ -7,6 +7,15 @@
 	display: inline-block;
 }
 
+.textbox {
+	overflow: hidden;
+	padding-right: 0.5em;
+}
+
+.textbox-submit {
+	float: right;
+}
+
 .page-main-action {
 	width: 30%;
 	margin: 2rem auto;
@@ -26,7 +35,7 @@
 	margin: auto 5% 1em;
 }
 
-#find-user-btn {
+#find-user-button {
 	display: flex;
 	justify-content: center;
 }
