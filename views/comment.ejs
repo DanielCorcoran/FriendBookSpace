@@ -3,7 +3,22 @@
 <div class="container">
   <div class="container">
     <div class="row">
-      <h1 class="top-of-page-text">Edit your status</h1>
+      <h1 class="top-of-page-text">Comment on this post</h1>
+      <div class="page-main-action">
+        <form action="/feed/<%= status._id %>" method="POST"> 
+          <button class="textbox-submit btn btn-primary">Submit</button>
+          <div class="textbox form-group">
+            <input
+              class="form-control"
+              type="text"
+              name="text"
+              placeholder="comment"
+              onfocus="this.placeholder=''"
+              onblur="this.placeholder='comment'"
+            />
+          </div>
+        </form>
+      </div>
 
       <div class="status-outline">
         <div class="panel panel-default col-md-6" id="initial-comment">
@@ -11,22 +26,15 @@
             <h3><a href="/users/<%= status.author.id %>"><%= status.author.username %></a></h3>
             <p><%= status.text %></p>
             <% if (currentUser) { %>
-              <a href="/feed/<%= status._id %>" class="btn btn-primary">Comment</a>
-              <form
-                class="comment-button"
-                action="/feed/<%= status._id %>?_method=DELETE"
-                method="POST"
-              >
-                <button class="btn btn-danger">Delete</button>
-              </form>
-              <div>
-                <form action="/feed/<%= status._id %>?_method=PUT" method="POST">
-                  <button class="textbox-submit btn btn-primary">Submit</button>
-                  <div class="textbox form-group">
-                    <input class="form-control" type="text" name="text" value="<%= status.text %>">
-                  </div>
+              <% if (status.author.id.equals(currentUser._id)) { %>
+                <form
+                  class="comment-button"
+                  action="/feed/<%= status._id %>?_method=DELETE"
+                  method="POST"
+                >
+                  <button class="btn btn-danger">Delete</button>
                 </form>
-              </div>
+              <% } %>
             <% } %>
           </div>
           <% if (status.comments.length) { %>

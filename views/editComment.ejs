@@ -5,9 +5,6 @@
     <div class="row">
       <h1 class="top-of-page-text">Edit this comment</h1>
 
-      <!-- <h3><%= commentToEdit.author.username %></h3>
-      <p><%= commentToEdit.text %></p> -->
-
       <div class="status-outline">
         <div class="panel panel-default col-md-6" id="initial-comment">
           <div class="panel-body">
@@ -41,7 +38,7 @@
                   <% if (currentUser && comment.author.id.equals(currentUser._id) && commentToEdit.equals(comment)) { %>
                     <div>
                       <form action="/feed/<%= status._id %>/<%= comment._id %>?_method=PUT" method="POST">
-                        <button class="textbox-submit btn btn-md btn-primary">Submit</button>
+                        <button class="textbox-submit btn btn-primary">Submit</button>
                         <div class="textbox form-group">
                           <input class="form-control" type="text" name="text" value="<%= comment.text %>">
                         </div>

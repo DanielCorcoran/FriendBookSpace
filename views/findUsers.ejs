@@ -1,26 +1,28 @@
 <% include partials/header %>
 
-<% if (!isFollowingSomeone) { %>
-  <h2>You are not following anyone</h2>
-<% } %>
-  <h2>Find some people to follow</h2>
+<div class="container">
+  <% if (!isFollowingSomeone) { %>
+    <h2 class="top-of-page-text">You are not following anyone</h2>
+  <% } %>
+  <h2 class="top-of-page-text">Find some people to follow</h2>
 
   <div class="container">
-    <div>
+    <div class="page-main-action">
       <form action="/findusers" method="GET"> 
-        <div class="form-group">
+        <button class="textbox-submit btn btn-primary">Search</button>
+        <div class="textbox form-group">
           <input
             class="form-control"
             type="text"
             name="username"
             placeholder="enter a username"
+            onfocus="this.placeholder=''"
+            onblur="this.placeholder='enter a username'"
           />
-        </div>
-        <div class="form-group">
-          <button class="btn btn-lg btn-primary btn-block">Search</button>
         </div>
       </form>
     </div>
+    <br></br>
 
     <% userList.forEach(user => { %>
       <% if (!user.equals(currentUser)) { %>
@@ -34,5 +36,6 @@
       <% } %>
     <% }); %>
   </div>
+</div>
 
 <% include partials/footer %>

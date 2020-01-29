@@ -35,7 +35,6 @@
 	margin: auto 5% 1em;
 }
 
-#find-user-button {
-	display: flex;
-	justify-content: center;
+#find-user-btn {
+	color: white;
 }

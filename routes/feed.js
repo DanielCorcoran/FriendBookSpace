@@ -68,7 +68,7 @@ router.get("/:id", middleware.isLoggedIn, (req, res) => {
 			if (err) {
 				console.log(err);
 			} else {
-				res.render("view", { status: foundStatus });
+				res.render("comment", { status: foundStatus, currentUser: req.user });
 			}
 		});
 });
@@ -97,9 +97,15 @@ router.post("/:id", middleware.isLoggedIn, (req, res) => {
 });
 
 router.get("/:id/edit", middleware.checkStatusOwnership, (req, res) => {
-	Status.findById(req.params.id, (err, foundStatus) => {
-		res.render("editStatus", { status: foundStatus });
-	});
+	Status.findById(req.params.id)
+		.populate("comments")
+		.exec((err, foundStatus) => {
+			if (err) {
+				req.flash("error", "Something went wrong");
+				res.redirect("/feed");
+			}
+			res.render("editStatus", { status: foundStatus, currentUser: req.user });
+		});
 });
 
 router.put("/:id", middleware.checkStatusOwnership, (req, res) => {
@@ -110,7 +116,8 @@ router.put("/:id", middleware.checkStatusOwnership, (req, res) => {
 			if (err) {
 				res.redirect("/feed");
 			} else {
-				res.redirect("/feed/" + req.params.id);
+				req.flash("success", "Status updated");
+				res.redirect("/feed/");
 			}
 		}
 	);
@@ -141,7 +148,6 @@ router.get(
 							res.redirect("back");
 						} else {
 							res.render("editComment", {
-								// status_id: req.params.id,
 								status: foundStatus,
 								commentToEdit: foundComment,
 								currentUser: req.user
@@ -161,7 +167,8 @@ router.put("/:id/:commentId", middleware.checkCommentOwnership, (req, res) => {
 			if (err) {
 				res.redirect("back");
 			} else {
-				res.redirect("/feed/" + req.params.id);
+				req.flash("success", "Comment updated");
+				res.redirect("/feed/");
 			}
 		}
 	);
