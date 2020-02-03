@@ -1,9 +1,35 @@
 <% include partials/header %>
 
-<form action="/register" method="POST">
-    <input type="text" name="username" placeholder="username">
-    <input type="password" name="password" placeholder="password">
-    <button>Sign Up</button>
-</form>
+<div class="container">
+  <div class="row">
+    <h1 class="top-of-page-text">Register an account</h1>
+    <div class="page-main-action">
+      <form action="/register" method="POST">
+        <div class="form-group">
+          <input
+            id="username-box"
+            class="form-control"
+            type="text"
+            name="username"
+            placeholder="username"
+            onfocus="this.placeholder=''"
+            onblur="this.placeholder='username'"
+          />
+          <input
+            class="form-control"
+            type="password"
+            name="password"
+            placeholder="password"
+            onfocus="this.placeholder=''"
+            onblur="this.placeholder='password'"
+          />
+        </div>
+        <div id="register-submit">
+          <button class="btn btn-primary">Sign Up</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <% include partials/footer %>

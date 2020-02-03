@@ -6,36 +6,34 @@
   <% } %>
   <h2 class="top-of-page-text">Find some people to follow</h2>
 
-  <div class="container">
-    <div class="page-main-action">
-      <form action="/findusers" method="GET"> 
-        <button class="textbox-submit btn btn-primary">Search</button>
-        <div class="textbox form-group">
-          <input
-            class="form-control"
-            type="text"
-            name="username"
-            placeholder="enter a username"
-            onfocus="this.placeholder=''"
-            onblur="this.placeholder='enter a username'"
-          />
-        </div>
-      </form>
-    </div>
-    <br></br>
+  <div class="page-main-action">
+    <form action="/findusers" method="GET"> 
+      <button class="textbox-submit btn btn-primary">Search</button>
+      <div class="textbox form-group">
+        <input
+          class="form-control"
+          type="text"
+          name="username"
+          placeholder="enter a username"
+          onfocus="this.placeholder=''"
+          onblur="this.placeholder='enter a username'"
+        />
+      </div>
+    </form>
+  </div>
+  <br></br>
 
-    <% userList.forEach(user => { %>
-      <% if (!user.equals(currentUser)) { %>
-        <div class="user-list">
-          <div class="panel panel-default col-md-6">
-            <div class="panel-body">
-              <h3><a href="/users/<%= user._id %>"><%= user.username %></a></h3>
-            </div>
+  <% userList.forEach(user => { %>
+    <% if (!user.equals(currentUser)) { %>
+      <div class="user-list">
+        <div class="panel panel-default col-md-6">
+          <div class="panel-body">
+            <h3><a href="/users/<%= user._id %>"><%= user.username %></a></h3>
           </div>
         </div>
-      <% } %>
-    <% }); %>
-  </div>
+      </div>
+    <% } %>
+  <% }); %>
 </div>
 
 <% include partials/footer %>

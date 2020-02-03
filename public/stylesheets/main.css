@@ -38,3 +38,16 @@
 #find-user-btn {
 	color: white;
 }
+
+#flash-msg {
+	width: 30%;
+	margin-top: 2em;
+}
+
+#register-submit {
+	text-align: center;
+}
+
+#username-box {
+	margin-bottom: 0.5em;
+}

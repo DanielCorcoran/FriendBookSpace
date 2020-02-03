@@ -20,7 +20,7 @@ middlewareObj.checkStatusOwnership = (req, res, next) => {
 		});
 	} else {
 		req.flash("error", "You must be logged in to do that");
-		res.redirect("back");
+		res.redirect("/");
 	}
 };
 
@@ -41,7 +41,7 @@ middlewareObj.checkCommentOwnership = (req, res, next) => {
 		});
 	} else {
 		req.flash("error", "You must be logged in to do that");
-		res.redirect("back");
+		res.redirect("/");
 	}
 };
 
@@ -50,7 +50,7 @@ middlewareObj.isLoggedIn = (req, res, next) => {
 		return next();
 	}
 	req.flash("error", "You must be logged in to do that");
-	res.redirect("/login");
+	res.redirect("/");
 };
 
 module.exports = middlewareObj;

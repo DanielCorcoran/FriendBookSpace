@@ -28,6 +28,11 @@ input {
 	letter-spacing: 0.5px;
 }
 
+#flash-msg {
+	width: 30%;
+	margin-top: 2em;
+}
+
 #landing-header {
 	z-index: 1;
 	position: relative;
