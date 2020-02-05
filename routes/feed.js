@@ -6,43 +6,48 @@ const express = require("express"),
 	middleware = require("../middleware");
 
 router.get("/", middleware.isLoggedIn, (req, res) => {
-	Status.find({})
-		.sort({ createdAt: -1 })
-		.populate("comments")
-		.exec((err, statuses) => {
-			if (err) {
-				console.log(err);
-			} else if (!req.user.following.length) {
-				User.find({})
-					.limit(20)
-					.exec((err, userList) => {
-						if (err) {
-							req.flash("error", "Something went wrong");
-							res.redirect("/");
-						} else {
-							res.render("findUsers", {
-								currentUser: req.user,
-								userList: userList,
-								isFollowingSomeone: false
-							});
+	if (!req.user.following.length) {
+		User.find({})
+			.limit(20)
+			.exec((err, userList) => {
+				if (err) {
+					req.flash("error", "Could not load user list");
+					res.redirect("/");
+				} else {
+					res.render("findUsers", {
+						currentUser: req.user,
+						userList: userList,
+						isFollowingSomeone: false
+					});
+				}
+			});
+	} else {
+		Status.find({})
+			.sort({ createdAt: -1 })
+			.populate("comments")
+			.exec((err, statuses) => {
+				if (err) {
+					req.flash("error", "Could not load status feed");
+					res.redirect("/");
+				} else {
+					const statusesToPass = [];
+
+					statuses.forEach(status => {
+						if (
+							req.user.following.includes(status.author.id) ||
+							status.author.id.equals(req.user._id)
+						) {
+							statusesToPass.push(status);
 						}
 					});
-			} else {
-				const statusesToPass = [];
-				statuses.forEach(e => {
-					if (
-						req.user.following.includes(e.author.id) ||
-						e.author.id.equals(req.user._id)
-					) {
-						statusesToPass.push(e);
-					}
-				});
-				res.render("index", {
-					statuses: statusesToPass,
-					currentUser: req.user
-				});
-			}
-		});
+
+					res.render("index", {
+						statuses: statusesToPass,
+						currentUser: req.user
+					});
+				}
+			});
+	}
 });
 
 router.post("/", middleware.isLoggedIn, (req, res) => {
@@ -52,12 +57,12 @@ router.post("/", middleware.isLoggedIn, (req, res) => {
 		username: req.user.username
 	};
 	const newStatus = { author: author, text: text, createdAt: new Date() };
-	Status.create(newStatus, (err, newStatus) => {
+
+	Status.create(newStatus, err => {
 		if (err) {
-			console.log(err);
-		} else {
-			res.redirect("/feed");
+			req.flash("error", "Error creating status");
 		}
+		res.redirect("/feed");
 	});
 });
 
@@ -66,7 +71,8 @@ router.get("/:id", middleware.isLoggedIn, (req, res) => {
 		.populate("comments")
 		.exec((err, foundStatus) => {
 			if (err) {
-				console.log(err);
+				req.flash("error", "Status not found");
+				res.redirect("back");
 			} else {
 				res.render("comment", { status: foundStatus, currentUser: req.user });
 			}
@@ -76,12 +82,13 @@ router.get("/:id", middleware.isLoggedIn, (req, res) => {
 router.post("/:id", middleware.isLoggedIn, (req, res) => {
 	Status.findById(req.params.id, (err, status) => {
 		if (err) {
-			req.flash("error", "Something went wrong");
+			req.flash("error", "Status not found");
 			res.redirect("/feed");
 		} else {
 			Comment.create(req.body.comment, (err, comment) => {
 				if (err) {
-					console.log(err);
+					req.flash("error", "Error creating comment");
+					res.redirect("/feed");
 				} else {
 					comment.author.id = req.user._id;
 					comment.author.username = req.user.username;
@@ -101,33 +108,35 @@ router.get("/:id/edit", middleware.checkStatusOwnership, (req, res) => {
 		.populate("comments")
 		.exec((err, foundStatus) => {
 			if (err) {
-				req.flash("error", "Something went wrong");
-				res.redirect("/feed");
+				req.flash("error", "Status not found");
+				res.redirect("back");
+			} else {
+				res.render("editStatus", {
+					status: foundStatus,
+					currentUser: req.user
+				});
 			}
-			res.render("editStatus", { status: foundStatus, currentUser: req.user });
 		});
 });
 
 router.put("/:id", middleware.checkStatusOwnership, (req, res) => {
-	Status.findByIdAndUpdate(
-		req.params.id,
-		{ text: req.body.text },
-		(err, updatedStatus) => {
-			if (err) {
-				res.redirect("/feed");
-			} else {
-				req.flash("success", "Status updated");
-				res.redirect("/feed/");
-			}
+	Status.findByIdAndUpdate(req.params.id, { text: req.body.text }, err => {
+		if (err) {
+			req.flash("error", "Status could not be updated");
+		} else {
+			req.flash("success", "Status updated");
 		}
-	);
+		res.redirect("/feed/" + req.params.id);
+	});
 });
 
 router.delete("/:id", middleware.checkStatusOwnership, (req, res) => {
 	Status.findByIdAndRemove(req.params.id, err => {
 		if (err) {
-			res.redirect("/feed");
+			req.flash("error", "Status could not be deleted");
+			res.redirect("back");
 		} else {
+			req.flash("success", "Status deleted");
 			res.redirect("/feed");
 		}
 	});
@@ -139,12 +148,14 @@ router.get(
 	(req, res) => {
 		Comment.findById(req.params.commentId, (err, foundComment) => {
 			if (err) {
+				req.flash("error", "Comment not found");
 				res.redirect("back");
 			} else {
 				Status.findById(req.params.id)
 					.populate("comments")
 					.exec((err, foundStatus) => {
 						if (err) {
+							req.flash("error", "Status not found");
 							res.redirect("back");
 						} else {
 							res.render("editComment", {
@@ -163,12 +174,13 @@ router.put("/:id/:commentId", middleware.checkCommentOwnership, (req, res) => {
 	Comment.findByIdAndUpdate(
 		req.params.commentId,
 		{ text: req.body.text },
-		(err, updatedComment) => {
+		err => {
 			if (err) {
+				req.flash("error", "Comment could not be updated");
 				res.redirect("back");
 			} else {
 				req.flash("success", "Comment updated");
-				res.redirect("/feed/");
+				res.redirect("/feed/" + req.params.id);
 			}
 		}
 	);
@@ -180,10 +192,11 @@ router.delete(
 	(req, res) => {
 		Comment.findByIdAndRemove(req.params.commentId, err => {
 			if (err) {
+				req.flash("error", "Comment could not be deleted");
 				res.redirect("back");
 			} else {
 				req.flash("success", "Comment deleted");
-				res.redirect("/feed/" + req.params.id);
+				res.redirect("/feed");
 			}
 		});
 	}
