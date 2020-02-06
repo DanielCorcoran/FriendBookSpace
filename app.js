@@ -11,10 +11,25 @@ const express = require("express"),
 const feedRoutes = require("./routes/feed"),
 	indexRoutes = require("./routes/index");
 
-mongoose.connect("mongodb://localhost/FriendBookSpace", {
-	useNewUrlParser: true,
-	useUnifiedTopology: true
-});
+require("dotenv").config();
+mongoose
+	.connect(process.env.MONGODB_URI, {
+		useNewUrlParser: true,
+		useUnifiedTopology: true,
+		useCreateIndex: true
+	})
+	.then(() => {
+		console.log("connected to DB");
+	})
+	.catch(err => {
+		console.log("ERROR", err.message);
+	});
+
+// mongoose.connect("mongodb://localhost/FriendBookSpace", {
+// 	useNewUrlParser: true,
+// 	useUnifiedTopology: true
+// });
+
 mongoose.set("useFindAndModify", false);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
