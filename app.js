@@ -12,8 +12,9 @@ const feedRoutes = require("./routes/feed"),
 	indexRoutes = require("./routes/index");
 
 require("dotenv").config();
+const url = process.env.MONGODB_URI || "mongodb://localhost/FriendBookSpace";
 mongoose
-	.connect(process.env.MONGODB_URI, {
+	.connect(url, {
 		useNewUrlParser: true,
 		useUnifiedTopology: true,
 		useCreateIndex: true
@@ -24,11 +25,6 @@ mongoose
 	.catch(err => {
 		console.log("ERROR", err.message);
 	});
-
-// mongoose.connect("mongodb://localhost/FriendBookSpace", {
-// 	useNewUrlParser: true,
-// 	useUnifiedTopology: true
-// });
 
 mongoose.set("useFindAndModify", false);
 app.use(bodyParser.urlencoded({ extended: true }));
