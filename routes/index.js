@@ -31,15 +31,11 @@ router.post("/register", (req, res) => {
 	});
 });
 
-router.get("/login", (req, res) => {
-	res.render("login");
-});
-
 router.post(
 	"/login",
 	passport.authenticate("local", {
 		successRedirect: "/feed",
-		failureRedirect: "/login"
+		failureRedirect: "/"
 	})
 );
 
