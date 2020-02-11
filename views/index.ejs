@@ -22,7 +22,7 @@
   
   <% statuses.forEach(status => { %>
     <div class="status-outline">
-      <div class="panel panel-default col-md-6" id="initial-comment">
+      <div class="panel panel-default col-xs-12" id="initial-comment">
         <div class="panel-body">
           <h3><a href="/users/<%= status.author.id %>"><%= status.author.username %></a></h3>
           <p><%= status.text %></p>

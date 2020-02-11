@@ -2,8 +2,12 @@
 	display: inline-block;
 }
 
+.edit-status-btn {
+	margin-bottom: 1.5em;
+}
+
 .page-main-action {
-	width: 30%;
+	width: 70%;
 	margin: 2rem auto;
 }
 
@@ -25,6 +29,11 @@
 	text-align: center;
 }
 
+.user-link {
+	margin-bottom: 1.5em;
+	display: block;
+}
+
 .user-list {
 	display: flex;
 	justify-content: center;
@@ -33,10 +42,6 @@
 
 #comment {
 	margin: auto 5% 1em;
-}
-
-#find-user-btn {
-	color: white;
 }
 
 #flash-msg {
@@ -48,6 +53,34 @@
 	text-align: center;
 }
 
+#status-edit-input-div {
+	margin-top: 1em;
+}
+
 #username-box {
 	margin-bottom: 0.5em;
+}
+
+@media only screen and (max-width: 600px) {
+	.container {
+		width: 100%;
+	}
+}
+
+@media only screen and (min-width: 768px) {
+	.container {
+		width: 70%;
+	}
+}
+
+@media only screen and (min-width: 992px) {
+	.container {
+		width: 60%;
+	}
+}
+
+@media only screen and (min-width: 1200px) {
+	.container {
+		width: 40%;
+	}
 }
