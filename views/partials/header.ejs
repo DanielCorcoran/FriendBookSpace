@@ -46,21 +46,21 @@
 				<!-- The options on the right side of the navbar -->
 				<div class="collapse navbar-collapse">
 					<% if (currentUser) { %>
-					<ul class="nav navbar-nav navbar-right">
-						<li>
-							<a href="/users/<%= currentUser._id %>"
-								>Signed in as <%= currentUser.username %></a
-							>
-						</li>
-						<li><a href="/logout">Logout</a></li>
-					</ul>
-					<form
-						class="navbar-form navbar-right"
-						action="/findusers"
-						method="GET"
-					>
-						<button class="btn btn-primary">Find people to follow</button>
-					</form>
+            <ul class="nav navbar-nav navbar-right">
+              <li>
+                <a href="/users/<%= currentUser._id %>"
+                  >Signed in as <%= currentUser.username %></a
+                >
+              </li>
+              <li><a href="/logout">Logout</a></li>
+            </ul>
+            <form
+              class="navbar-form navbar-right"
+              action="/findusers"
+              method="GET"
+            >
+              <button class="btn btn-primary">Find people to follow</button>
+            </form>
 					<% } %>
 				</div>
 
@@ -69,11 +69,11 @@
         this is hudden until the menu pops up -->
 				<div id="navbar-hamburger-menu" class="navbar-collapse collapse">
 					<% if (currentUser) { %>
-					<ul class="nav navbar-nav navbar-right visible-xs">
-						<li><a href="/findusers">Find users to follow</a></li>
-						<li><a href="/users/<%= currentUser._id %>">Profile</a></li>
-						<li><a href="/logout">Logout</a></li>
-					</ul>
+            <ul class="nav navbar-nav navbar-right visible-xs">
+              <li><a href="/findusers">Find users to follow</a></li>
+              <li><a href="/users/<%= currentUser._id %>">Profile</a></li>
+              <li><a href="/logout">Logout</a></li>
+            </ul>
 					<% } %>
 				</div>
 			</div>
@@ -82,13 +82,14 @@
 		<!-- This displays flash messages, if any -->
 		<div id="flash-msg" class="container">
 			<% if (error && error.length > 0) { %>
-			<div class="alert alert-danger" role="alert">
-				<%= error %>
-			</div>
-			<% } %> <% if (success && success.length > 0) { %>
-			<div class="alert alert-success" role="alert">
-				<%= success %>
-			</div>
+        <div class="alert alert-danger" role="alert">
+          <%= error %>
+        </div>
+      <% } %>
+      <% if (success && success.length > 0) { %>
+        <div class="alert alert-success" role="alert">
+          <%= success %>
+        </div>
 			<% } %>
 		</div>
 	</body>
