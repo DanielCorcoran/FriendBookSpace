@@ -1,69 +1,88 @@
+<!-- This is the page to comment on a certain status;
+  clicking a status will bring you to this page.
+  It contains the status, as well as any comments,
+  and a place for the logged in user to comment. -->
+
 <% include partials/header %>
 
 <div class="container">
-  <div class="row">
-    <h1 class="top-of-page-text">Comment on this post</h1>
-    <div class="page-main-action">
-      <form action="/feed/<%= status._id %>" method="POST"> 
-        <button class="textbox-submit btn btn-primary">Submit</button>
-        <div class="textbox form-group">
-          <input
-            class="form-control"
-            type="text"
-            name="text"
-            placeholder="comment"
-            onfocus="this.placeholder=''"
-            onblur="this.placeholder='comment'"
-          />
-        </div>
-      </form>
-    </div>
-  </div>
+	<!-- The form to comment on the status -->
+	<div class="row">
+		<h1 class="top-of-page-text">Comment on this post</h1>
+		<div class="page-main-action">
+			<form action="/feed/<%= status._id %>" method="POST">
+				<button class="textbox-submit btn btn-primary">Submit</button>
+				<div class="textbox form-group">
+					<input
+						class="form-control"
+						type="text"
+						name="text"
+						placeholder="comment"
+						onfocus="this.placeholder=''"
+						onblur="this.placeholder='comment'"
+					/>
+				</div>
+			</form>
+		</div>
+	</div>
 
-  <div class="status-outline">
-    <div class="panel panel-default col-xs-12" id="initial-comment">
-      <div class="panel-body">
-        <h3><a href="/users/<%= status.author.id %>"><%= status.author.username %></a></h3>
-        <p><%= status.text %></p>
-        <% if (currentUser) { %>
-          <% if (status.author.id.equals(currentUser._id)) { %>
-            <form
-              class="comment-button"
-              action="/feed/<%= status._id %>?_method=DELETE"
-              method="POST"
-            >
-              <button class="btn btn-danger">Delete</button>
-            </form>
-          <% } %>
-        <% } %>
-      </div>
-      <% if (status.comments.length) { %>
-        <% status.comments.forEach(comment => { %>
-          <div class="panel panel-default" id="comment">
-            <div class="panel-body">
-              <p>
-                <strong><a href="/<%= comment.author.id %>"><%= comment.author.username %></a></strong> - <%= comment.text %>
-              </p>
-              <% if (currentUser && comment.author.id.equals(currentUser._id)) { %>
-                <a
-                  href="/feed/<%= status._id %>/<%= comment._id %>/edit"
-                  class="btn btn-xs btn-warning"
-                  >Edit</a
-                >
-                <form
-                  class="comment-button"
-                  action="/feed/<%= status._id %>/<%= comment._id %>?_method=DELETE"
-                  method="POST"
-                >
-                  <button class="btn btn-xs btn-danger">Delete</button>
-                </form>
-              <% } %>
-            </div>
-          </div>
-        <% }); %>
-      <% } %>
-    </div>
-  </div>
+	<!-- The status to be commented on -->
+	<div class="status-outline">
+		<div class="panel panel-default col-xs-12" id="initial-comment">
+			<div class="panel-body">
+				<h3>
+					<a href="/users/<%= status.author.id %>"
+						><%= status.author.username %></a
+					>
+				</h3>
+				<p><%= status.text %></p>
+				<!-- If the person commenting is also the owner of the status,
+          that person can also delete it from here -->
+				<% if (currentUser) { %> <% if
+				(status.author.id.equals(currentUser._id)) { %>
+				<form
+					class="comment-button"
+					action="/feed/<%= status._id %>?_method=DELETE"
+					method="POST"
+				>
+					<button class="btn btn-danger">Delete</button>
+				</form>
+				<% } %> <% } %>
+			</div>
+
+			<!-- Any comments already made on the status are also displayed -->
+			<% if (status.comments.length) { %> <% status.comments.forEach(comment =>
+			{ %>
+			<div class="panel panel-default" id="comment">
+				<div class="panel-body">
+					<p>
+						<strong
+							><a href="/<%= comment.author.id %>"
+								><%= comment.author.username %></a
+							></strong
+						>
+						- <%= comment.text %>
+					</p>
+					<!-- A comment can be edited or deleted if the current user owns it -->
+					<% if (currentUser && comment.author.id.equals(currentUser._id)) { %>
+					<a
+						href="/feed/<%= status._id %>/<%= comment._id %>/edit"
+						class="btn btn-xs btn-warning"
+						>Edit</a
+					>
+					<form
+						class="comment-button"
+						action="/feed/<%= status._id %>/<%= comment._id %>?_method=DELETE"
+						method="POST"
+					>
+						<button class="btn btn-xs btn-danger">Delete</button>
+					</form>
+					<% } %>
+				</div>
+			</div>
+			<% }); %> <% } %>
+		</div>
+	</div>
 </div>
 
 <% include partials/footer %>
