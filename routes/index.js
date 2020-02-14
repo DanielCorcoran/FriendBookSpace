@@ -18,15 +18,15 @@ router.get("/register", (req, res) => {
 });
 
 router.post("/register", (req, res) => {
-	const newUser = new User({ username: req.body.username });
-	User.register(newUser, req.body.password, (err, user) => {
+  const newUser = new User({ username: req.body.username });
+  
+	User.register(newUser, req.body.password, err => {
 		if (err) {
 			req.flash("error", err.message);
 			return res.redirect("/register");
 		}
 		passport.authenticate("local")(req, res, () => {
-			req.flash("success", "Welcome to FriendBookSpace!");
-			res.redirect("/feed");
+			flashMsg(req, res, true, "Welcome to FriendBookSpace!", "/feed");
 		});
 	});
 });
@@ -41,31 +41,28 @@ router.post(
 
 router.get("/logout", (req, res) => {
 	req.logout();
-	req.flash("success", "Successfully Logged Out");
-	res.redirect("/");
+	flashMsg(req, res, true, "Successfully Logged Out", "/");
 });
 
 router.get("/users/:userId", middleware.isLoggedIn, (req, res) => {
 	User.findById(req.params.userId, (err, foundUser) => {
 		if (err) {
-			req.flash("error", "Something went wrong");
-			res.redirect("/feed");
+			flashMsg(req, res, false, "User not found", "/feed");
 		} else {
 			Status.find({ "author.id": foundUser })
 				.sort({ createdAt: -1 })
 				.populate("comments")
 				.exec((err, statuses) => {
 					if (err) {
-						req.flash("error", "Something went wrong");
-						res.redirect("/feed");
+						flashMsg(req, res, false, "Something went wrong", "/feed");
 					} else {
-						let isFollowing = false;
+            let isFollowing = false;
+            
 						User.findOne(
 							{ _id: req.user._id, following: req.params.userId },
 							(err, followedUser) => {
 								if (err) {
-									req.flash("error", "Something went wrong");
-									res.redirect("/feed");
+									flashMsg(req, res, false, "Something went wrong", "/feed");
 								} else {
 									// You shouldn't be able to follow yourself
 									if (followedUser || foundUser.equals(req.user)) {
@@ -88,24 +85,21 @@ router.get("/users/:userId", middleware.isLoggedIn, (req, res) => {
 router.put("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 	User.findById(req.params.userId, (err, userToFollow) => {
 		if (err) {
-			req.flash("error", "Something went wrong");
-			res.redirect("/feed");
+			flashMsg(req, res, false, "User not found", "/feed");
 		} else {
 			User.findOne(
 				{ _id: req.user._id, following: userToFollow },
 				(err, followedUser) => {
 					if (err) {
-						req.flash("error", "Something went wrong");
-						res.redirect("/feed");
+						flashMsg(req, res, false, "Something went wrong", "/feed");
 					} else {
 						if (!followedUser && !userToFollow.equals(req.user)) {
+              const successMsg =
+              "You are now following" + userToFollow.username;
+
 							req.user.following.push(userToFollow);
 							req.user.save();
-							req.flash(
-								"success",
-								"You are now following " + userToFollow.username
-							);
-							res.redirect("/feed");
+							flashMsg(req, res, true, successMsg, "/feed");
 						} else {
 							res.redirect("/feed");
 						}
@@ -119,23 +113,23 @@ router.put("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 router.delete("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 	User.findById(req.params.userId, (err, userToUnfollow) => {
 		if (err) {
-			req.flash("error", "Something went wrong");
-			res.redirect("/feed");
+      flashMsg(req, res, false, "User not found", "/feed");
 		} else {
 			User.findOne(
 				{ _id: req.user._id, following: userToUnfollow },
 				(err, foundUser) => {
 					if (err) {
-						req.flash("error", "Something went wrong");
-						res.redirect("/feed");
+						flashMsg(req, res, false, "Something went wrong", "/feed");
 					} else {
 						if (foundUser) {
+              const successMsg =
+              "You unfollowed " + userToUnfollow.username;
+
 							req.user.following.pull(req.params.userId);
-							req.user.save();
-							req.flash("success", "You unfollowed " + userToUnfollow.username);
-							res.redirect("/feed");
+              req.user.save();
+							flashMsg(req, res, true, successMsg, "/feed");
 						} else {
-							res.redirect("/feed");
+							flashMsg(req, res, false, "Could not unfollow user", "/feed");
 						}
 					}
 				}
@@ -150,22 +144,18 @@ router.get("/findusers", middleware.isLoggedIn, (req, res) => {
 			{ username: { $regex: ".*" + req.query.username } },
 			(err, userList) => {
 				if (err) {
-					console.log(err);
+          flashMsg(req, res, false, "Something went wrong", "/feed");
 				} else if (!userList.length) {
-					req.flash("error", "No users found");
-					res.redirect("/feed");
+          flashMsg(req, res, false, "No users found", "/feed");
 				} else {
-					const userListToSend = [];
+          const userListToSend = [];
+          
 					userList.forEach(user => {
 						if (!req.user.following.includes(user._id)) {
 							userListToSend.push(user);
 						}
 					});
-					res.render("findUsers", {
-						currentUser: req.user,
-						userList: userListToSend,
-						isFollowingSomeone: true
-					});
+					loadFindUsersPage(res, req, userListToSend);
 				}
 			}
 		);
@@ -174,23 +164,40 @@ router.get("/findusers", middleware.isLoggedIn, (req, res) => {
 			.limit(20)
 			.exec((err, userList) => {
 				if (err) {
-					req.flash("error", "Something went wrong");
-					res.redirect("/");
+          flashMsg(req, res, false, "Something went wrong", "/feed");
 				} else {
-					const userListToSend = [];
+          const userListToSend = [];
+          
 					userList.forEach(user => {
 						if (!req.user.following.includes(user._id)) {
 							userListToSend.push(user);
 						}
 					});
-					res.render("findUsers", {
-						currentUser: req.user,
-						userList: userListToSend,
-						isFollowingSomeone: true
-					});
+					loadFindUsersPage(res, req, userListToSend);
 				}
 			});
 	}
 });
+
+function loadFindUsersPage(res, req, userListToSend) {
+  res.render("findUsers", {
+    currentUser: req.user,
+    userList: userListToSend,
+    isFollowingSomeone: true
+  });
+}
+
+function flashMsg(req, res, isSuccess, message, route) {
+	let outcome;
+
+	if (isSuccess) {
+		outcome = "success";
+	} else {
+		outcome = "error";
+	}
+
+	req.flash(outcome, message);
+	res.redirect(route);
+}
 
 module.exports = router;
