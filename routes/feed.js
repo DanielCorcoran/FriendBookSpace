@@ -126,7 +126,7 @@ router.put("/:id", middleware.checkStatusOwnership, (req, res) => {
 		} else {
 			req.flash("success", "Status updated");
 		}
-		res.redirect("/feed/" + req.params.id);
+		res.redirect("/feed/");
 	});
 });
 

@@ -1,6 +1,6 @@
 <!-- This is the page to edit a comment.  It contains the status that was 
   commented on, the comment to be edited, a place to edit the comment,
-  and any additional comments -->
+  and any additional comments. -->
 
 <% include partials/header %>
 
@@ -36,6 +36,7 @@
           <% } %>
         <% } %>
       </div>
+
 			<!-- Any comments already made on the status are also displayed -->
       <% if (status.comments.length) { %>
         <% status.comments.forEach(comment => { %>

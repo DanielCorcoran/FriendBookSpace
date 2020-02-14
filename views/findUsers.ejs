@@ -1,3 +1,5 @@
+<!-- This is the page that allows users to find other users to follow -->
+
 <% include partials/header %>
 
 <div class="container">
@@ -6,6 +8,7 @@
   <% } %>
   <h2 class="top-of-page-text">Find some people to follow</h2>
 
+  <!-- Form to search for other users -->
   <div class="page-main-action">
     <form action="/findusers" method="GET"> 
       <button class="textbox-submit btn btn-primary">Search</button>
@@ -23,6 +26,8 @@
   </div>
   <br></br>
 
+  <!-- The search results are displayed here.  If no search was done, 
+    a list of users the current user isn't following is displayed instead. -->
   <% userList.forEach(user => { %>
     <% if (!user.equals(currentUser)) { %>
       <div class="user-list">
