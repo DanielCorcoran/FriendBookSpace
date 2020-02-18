@@ -3,7 +3,7 @@
 <% include partials/header %>
 
 <div class="container">
-  <% if (!isFollowingSomeone) { %>
+  <% if (!currentUser.following.length) { %>
     <h2 class="top-of-page-text">You are not following anyone</h2>
   <% } %>
   <h2 class="top-of-page-text">Find some people to follow</h2>
