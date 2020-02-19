@@ -12,9 +12,9 @@ const express = require("express"),
 router.get("/", (req, res) => {
 	if (!req.isAuthenticated()) {
 		res.render("landing");
-	}
-
-	res.redirect("/feed");
+	} else {
+    res.redirect("/feed");
+  }
 });
 
 
@@ -33,11 +33,11 @@ router.post("/register", (req, res) => {
 	User.register(newUser, req.body.password, err => {
 		if (err) {
 			flashMsg(req, res, false, err.message, "/register");
+		} else {
+      passport.authenticate("local")(req, res, () => {
+        flashMsg(req, res, true, "Welcome to FriendBookSpace!", "/feed");
+      });
 		}
-
-		passport.authenticate("local")(req, res, () => {
-			flashMsg(req, res, true, "Welcome to FriendBookSpace!", "/feed");
-		});
 	});
 });
 

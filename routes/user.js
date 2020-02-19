@@ -16,40 +16,40 @@ router.get("/users/:userId", middleware.isLoggedIn, (req, res) => {
 	User.findById(req.params.userId, (err, foundUser) => {
 		if (err) {
 			flashMsg(req, res, false, "User not found", "/feed");
-		}
+		} else {
+			Status.find({ "author.id": foundUser })
+				.sort({ createdAt: -1 })
+				.populate("comments")
+				.exec((err, statuses) => {
+					if (err) {
+						flashMsg(req, res, false, "Something went wrong", "/feed");
+					} else {
+						// Determine if the logged in user is following the profile owner,
+						// and allow the user to follow or unfollow accordingly
+						let isFollowing = false;
 
-		Status.find({ "author.id": foundUser })
-			.sort({ createdAt: -1 })
-			.populate("comments")
-			.exec((err, statuses) => {
-				if (err) {
-					flashMsg(req, res, false, "Something went wrong", "/feed");
-				}
+						User.findOne(
+							{ _id: req.user._id, following: req.params.userId },
+							(err, followedUser) => {
+								if (err) {
+									flashMsg(req, res, false, "Something went wrong", "/feed");
+								} else {
+									// A user shouldn't be able to follow himself
+									if (followedUser || foundUser.equals(req.user)) {
+										isFollowing = true;
+									}
 
-        // Determine if the logged in user is following the profile owner,
-        // and allow the user to follow or unfollow accordingly
-				let isFollowing = false;
-
-				User.findOne(
-					{ _id: req.user._id, following: req.params.userId },
-					(err, followedUser) => {
-						if (err) {
-							flashMsg(req, res, false, "Something went wrong", "/feed");
-						}
-
-						// A user shouldn't be able to follow himself
-						if (followedUser || foundUser.equals(req.user)) {
-							isFollowing = true;
-						}
-
-						res.render("user", {
-							statuses: statuses,
-							pageOwner: foundUser,
-							isFollowing: isFollowing
-						});
+									res.render("user", {
+										statuses: statuses,
+										pageOwner: foundUser,
+										isFollowing: isFollowing
+									});
+								}
+							}
+						);
 					}
-				);
-			});
+				});
+		}
 	});
 });
 
@@ -60,28 +60,29 @@ router.put("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 	User.findById(req.params.userId, (err, userToFollow) => {
 		if (err) {
 			flashMsg(req, res, false, "User not found", "/feed");
+		} else {
+			// Check that the user to be followed isn't the logged in user and
+			// isn't already being followed
+			User.findOne(
+				{ _id: req.user._id, following: userToFollow },
+				(err, followedUser) => {
+					if (err) {
+						flashMsg(req, res, false, "Something went wrong", "/feed");
+					} else {
+						if (!followedUser && !userToFollow.equals(req.user)) {
+							const successMsg =
+								"You are now following " + userToFollow.username;
+
+							req.user.following.push(userToFollow);
+							req.user.save();
+							flashMsg(req, res, true, successMsg, "/feed");
+						} else {
+							flashMsg(req, res, false, "Could not follow user", "/feed");
+						}
+					}
+				}
+			);
 		}
-
-    // Check that the user to be followed isn't the logged in user and
-    // isn't already being followed
-		User.findOne(
-			{ _id: req.user._id, following: userToFollow },
-			(err, followedUser) => {
-				if (err) {
-					flashMsg(req, res, false, "Something went wrong", "/feed");
-				}
-
-				if (!followedUser && !userToFollow.equals(req.user)) {
-					const successMsg = "You are now following " + userToFollow.username;
-
-					req.user.following.push(userToFollow);
-					req.user.save();
-					flashMsg(req, res, true, successMsg, "/feed");
-				} else {
-					flashMsg(req, res, false, "Could not follow user", "/feed");
-				}
-			}
-		);
 	});
 });
 
@@ -92,28 +93,28 @@ router.delete("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 	User.findById(req.params.userId, (err, userToUnfollow) => {
 		if (err) {
 			flashMsg(req, res, false, "User not found", "/feed");
+		} else {
+			// Check to make sure the user to be unfollowed is being followed by
+			// the logged in user
+			User.findOne(
+				{ _id: req.user._id, following: userToUnfollow },
+				(err, foundUser) => {
+					if (err) {
+						flashMsg(req, res, false, "Something went wrong", "/feed");
+					} else {
+						if (foundUser) {
+							const successMsg = "You unfollowed " + userToUnfollow.username;
+
+							req.user.following.pull(req.params.userId);
+							req.user.save();
+							flashMsg(req, res, true, successMsg, "/feed");
+						} else {
+							flashMsg(req, res, false, "Could not unfollow user", "/feed");
+						}
+					}
+				}
+			);
 		}
-
-    // Check to make sure the user to be unfollowed is being followed by
-    // the logged in user
-		User.findOne(
-			{ _id: req.user._id, following: userToUnfollow },
-			(err, foundUser) => {
-				if (err) {
-					flashMsg(req, res, false, "Something went wrong", "/feed");
-				}
-
-				if (foundUser) {
-					const successMsg = "You unfollowed " + userToUnfollow.username;
-
-					req.user.following.pull(req.params.userId);
-					req.user.save();
-					flashMsg(req, res, true, successMsg, "/feed");
-				} else {
-					flashMsg(req, res, false, "Could not unfollow user", "/feed");
-				}
-			}
-		);
 	});
 });
 
@@ -123,21 +124,22 @@ router.delete("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 // for, return any results, otherwise show 20 users for the logged in user
 // to browse.
 router.get("/findusers", middleware.isLoggedIn, (req, res) => {
-  // If a name was searched for, query the database for relevant users
+	// If a name was searched for, query the database for relevant users
 	if (req.query.username) {
 		User.find(
 			{ username: { $regex: ".*" + req.query.username, $options: "i" } },
 			(err, userList) => {
 				if (err) {
 					flashMsg(req, res, false, "Something went wrong", "/feed");
-				}
-				if (!userList.length) {
-					flashMsg(req, res, false, "No users found", "/findusers");
-				}
+				} else {
+					if (!userList.length) {
+						flashMsg(req, res, false, "No users found", "/findusers");
+					} else {
+						const userListToSend = generateUserListToSend(userList, req);
 
-				const userListToSend = generateUserListToSend(userList, req);
-
-				loadFindUsersPage(res, req, userListToSend);
+						loadFindUsersPage(res, req, userListToSend);
+					}
+				}
 			}
 		);
 	} else {
@@ -146,11 +148,11 @@ router.get("/findusers", middleware.isLoggedIn, (req, res) => {
 			.exec((err, userList) => {
 				if (err) {
 					flashMsg(req, res, false, "Could not load user list", "/feed");
+				} else {
+					const userListToSend = generateUserListToSend(userList, req);
+
+					loadFindUsersPage(res, req, userListToSend);
 				}
-
-				const userListToSend = generateUserListToSend(userList, req);
-
-				loadFindUsersPage(res, req, userListToSend);
 			});
 	}
 });

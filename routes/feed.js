@@ -15,35 +15,35 @@ const express = require("express"),
 router.get("/", middleware.isLoggedIn, (req, res) => {
 	if (!req.user.following.length) {
 		res.redirect("findUsers");
-	}
+	} else {
+    // Load statuses and sort them in reverse chronological order
+    Status.find({})
+      .sort({ createdAt: -1 })
+      .populate("comments")
+      .exec((err, statuses) => {
+        if (err) {
+          flashMsg(req, res, false, "Could not load status feed", "/");
+        } else {
+          const statusesToPass = [];
 
-  // Load statuses and sort them in reverse chronological order
-	Status.find({})
-		.sort({ createdAt: -1 })
-		.populate("comments")
-		.exec((err, statuses) => {
-			if (err) {
-				flashMsg(req, res, false, "Could not load status feed", "/");
-			}
+          // Filter statuses to only show the user's and those from people the
+          // user is following
+          statuses.forEach(status => {
+            if (
+              req.user.following.includes(status.author.id) ||
+              status.author.id.equals(req.user._id)
+            ) {
+              statusesToPass.push(status);
+            }
+          });
 
-			const statusesToPass = [];
-
-      // Filter statuses to only show the user's and those from people the
-      // user is following
-			statuses.forEach(status => {
-				if (
-					req.user.following.includes(status.author.id) ||
-					status.author.id.equals(req.user._id)
-				) {
-					statusesToPass.push(status);
-				}
-			});
-
-			res.render("index", {
-				statuses: statusesToPass,
-				currentUser: req.user
-			});
-		});
+          res.render("index", {
+            statuses: statusesToPass,
+            currentUser: req.user
+          });
+        }
+      });
+  }
 });
 
 
@@ -60,9 +60,9 @@ router.post("/", middleware.isLoggedIn, (req, res) => {
 	Status.create(newStatus, err => {
 		if (err) {
 			flashMsg(req, res, false, "Error creating status", "/feed");
-		}
-
-		res.redirect("/feed");
+		} else {
+      res.redirect("/feed");
+    }
 	});
 });
 
@@ -75,9 +75,9 @@ router.get("/:id", middleware.isLoggedIn, (req, res) => {
 		.exec((err, foundStatus) => {
 			if (err) {
 				flashMsg(req, res, false, "Status not found", "back");
-			}
-
-			res.render("comment", { status: foundStatus, currentUser: req.user });
+			} else {
+        res.render("comment", { status: foundStatus, currentUser: req.user });
+      }
 		});
 });
 
@@ -88,26 +88,26 @@ router.post("/:id", middleware.isLoggedIn, (req, res) => {
 	Status.findById(req.params.id, (err, status) => {
 		if (err) {
 			flashMsg(req, res, false, "Status not found", "/feed");
-		}
-
-		Comment.create(req.body.comment, (err, comment) => {
-			if (err) {
-				flashMsg(req, res, false, "Error creating comment", "/feed");
-			}
-
-			comment.author.id = req.user._id;
-			comment.author.username = req.user.username;
-			comment.save();
-			status.comments.push(comment);
-			status.save();
-			flashMsg(
-				req,
-				res,
-				true,
-				"Successfully added comment",
-				"/feed" + status._id
-			);
-		});
+		} else {
+      Comment.create(req.body.comment, (err, comment) => {
+        if (err) {
+          flashMsg(req, res, false, "Error creating comment", "/feed");
+        } else {
+          comment.author.id = req.user._id;
+          comment.author.username = req.user.username;
+          comment.save();
+          status.comments.push(comment);
+          status.save();
+          flashMsg(
+            req,
+            res,
+            true,
+            "Successfully added comment",
+            "/feed/" + status._id
+          );
+        }
+      });
+    }
 	});
 });
 
@@ -120,12 +120,12 @@ router.get("/:id/edit", middleware.checkStatusOwnership, (req, res) => {
 		.exec((err, foundStatus) => {
 			if (err) {
 				flashMsg(req, res, false, "Status not found", "back");
-			}
-
-			res.render("editStatus", {
-				status: foundStatus,
-				currentUser: req.user
-			});
+			} else {
+        res.render("editStatus", {
+          status: foundStatus,
+          currentUser: req.user
+        });
+      }
 		});
 });
 
@@ -136,9 +136,9 @@ router.put("/:id", middleware.checkStatusOwnership, (req, res) => {
 	Status.findByIdAndUpdate(req.params.id, { text: req.body.text }, err => {
 		if (err) {
 			flashMsg(req, res, false, "Status could not be updated", "/feed");
-		}
-
-		flashMsg(req, res, true, "Status updated", "/feed");
+		} else {
+      flashMsg(req, res, true, "Status updated", "/feed");
+    }
 	});
 });
 
@@ -146,12 +146,25 @@ router.put("/:id", middleware.checkStatusOwnership, (req, res) => {
 
 // Deletes the user's status
 router.delete("/:id", middleware.checkStatusOwnership, (req, res) => {
+  // First, delete any comments on the status
+  Status.findById(req.params.id, (err, foundStatus) => {
+    if (err) {
+			flashMsg(req, res, false, "Status could not be deleted", "back");
+    } else {
+      Comment.deleteMany({_id: { $in: foundStatus.comments}}, err => {
+        if (err) {
+          flashMsg(req, res, false, "Something went wrong", "back");
+        }
+      });
+    }
+  });
+  
 	Status.findByIdAndRemove(req.params.id, err => {
 		if (err) {
 			flashMsg(req, res, false, "Status could not be deleted", "back");
-		}
-
-		flashMsg(req, res, true, "Status deleted", "/feed");
+		} else {
+      flashMsg(req, res, true, "Status deleted", "/feed");
+    }
 	});
 });
 
@@ -166,21 +179,21 @@ router.get(
 		Comment.findById(req.params.commentId, (err, foundComment) => {
 			if (err) {
 				flashMsg(req, res, false, "Comment not found", "back");
-			}
-
-			Status.findById(req.params.id)
-				.populate("comments")
-				.exec((err, foundStatus) => {
-					if (err) {
-						flashMsg(req, res, false, "Status not found", "back");
-					}
-
-					res.render("editComment", {
-						status: foundStatus,
-						commentToEdit: foundComment,
-						currentUser: req.user
-					});
-				});
+			} else {
+        Status.findById(req.params.id)
+          .populate("comments")
+          .exec((err, foundStatus) => {
+            if (err) {
+              flashMsg(req, res, false, "Status not found", "back");
+            } else {
+              res.render("editComment", {
+                status: foundStatus,
+                commentToEdit: foundComment,
+                currentUser: req.user
+              });
+            }
+          });
+      }
 		});
 	}
 );
@@ -195,9 +208,9 @@ router.put("/:id/:commentId", middleware.checkCommentOwnership, (req, res) => {
 		err => {
 			if (err) {
 				flashMsg(req, res, false, "Comment could not be updated", "back");
-			}
-
-			flashMsg(req, res, true, "Comment updated", "/feed/" + req.params.id);
+			} else {
+        flashMsg(req, res, true, "Comment updated", "/feed/" + req.params.id);
+      }
 		}
 	);
 });
@@ -212,9 +225,9 @@ router.delete(
 		Comment.findByIdAndRemove(req.params.commentId, err => {
 			if (err) {
 				flashMsg(req, res, false, "Comment could not be deleted", "back");
-			}
-
-			flashMsg(req, res, true, "Comment deleted", "/feed");
+			} else {
+        flashMsg(req, res, true, "Comment deleted", "/feed");
+      }
 		});
 	}
 );
