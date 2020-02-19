@@ -1,3 +1,7 @@
+// This file handles the tools and libraries necessary for the app to function.
+// This includes creating routes, setting up passport, and selecting an
+// environment for the database.
+
 const express = require("express"),
 	app = express(),
 	bodyParser = require("body-parser"),
@@ -8,9 +12,11 @@ const express = require("express"),
 	methodOverride = require("method-override"),
 	User = require("./models/user");
 
+// Include route files
 const feedRoutes = require("./routes/feed"),
 	indexRoutes = require("./routes/index");
 
+// Determine the correct location of the database and connect
 require("dotenv").config();
 const url = process.env.MONGODB_URI || "mongodb://localhost/FriendBookSpace";
 mongoose
@@ -26,6 +32,7 @@ mongoose
 		console.log("ERROR", err.message);
 	});
 
+// Methods to set/enable app functionality
 mongoose.set("useFindAndModify", false);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
@@ -56,6 +63,7 @@ app.use((req, res, next) => {
 app.use("/feed", feedRoutes);
 app.use(indexRoutes);
 
+// Start the server to which the app will connect
 app.listen(process.env.PORT || 8080, () => {
 	console.log("Server has started");
 });

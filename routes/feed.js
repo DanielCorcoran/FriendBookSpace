@@ -1,14 +1,23 @@
+// This file contains all of the routes for the main feed page of the app,
+// including accessing and editing statuses and comments
+
 const express = require("express"),
 	router = express.Router(),
 	Status = require("../models/status"),
 	Comment = require("../models/comment"),
 	middleware = require("../middleware");
 
+
+
+// Route for the main feed page.  If the user isn't following anyone, she will
+// be redirected to the page to find other users to follow since the feed only
+// displays people that the user is following.
 router.get("/", middleware.isLoggedIn, (req, res) => {
 	if (!req.user.following.length) {
 		res.redirect("findUsers");
 	}
 
+  // Load statuses and sort them in reverse chronological order
 	Status.find({})
 		.sort({ createdAt: -1 })
 		.populate("comments")
@@ -19,6 +28,8 @@ router.get("/", middleware.isLoggedIn, (req, res) => {
 
 			const statusesToPass = [];
 
+      // Filter statuses to only show the user's and those from people the
+      // user is following
 			statuses.forEach(status => {
 				if (
 					req.user.following.includes(status.author.id) ||
@@ -35,6 +46,9 @@ router.get("/", middleware.isLoggedIn, (req, res) => {
 		});
 });
 
+
+
+// Route to post a new status
 router.post("/", middleware.isLoggedIn, (req, res) => {
 	const text = req.body.text;
 	const author = {
@@ -52,6 +66,9 @@ router.post("/", middleware.isLoggedIn, (req, res) => {
 	});
 });
 
+
+
+// Route to load a single status.  From here, the user can comment on it.
 router.get("/:id", middleware.isLoggedIn, (req, res) => {
 	Status.findById(req.params.id)
 		.populate("comments")
@@ -64,6 +81,9 @@ router.get("/:id", middleware.isLoggedIn, (req, res) => {
 		});
 });
 
+
+
+// Route to post a comment on the selected status
 router.post("/:id", middleware.isLoggedIn, (req, res) => {
 	Status.findById(req.params.id, (err, status) => {
 		if (err) {
@@ -91,6 +111,9 @@ router.post("/:id", middleware.isLoggedIn, (req, res) => {
 	});
 });
 
+
+
+// Route to edit a status that belongs to the logged in user
 router.get("/:id/edit", middleware.checkStatusOwnership, (req, res) => {
 	Status.findById(req.params.id)
 		.populate("comments")
@@ -106,6 +129,9 @@ router.get("/:id/edit", middleware.checkStatusOwnership, (req, res) => {
 		});
 });
 
+
+
+// Updates the user's status
 router.put("/:id", middleware.checkStatusOwnership, (req, res) => {
 	Status.findByIdAndUpdate(req.params.id, { text: req.body.text }, err => {
 		if (err) {
@@ -116,6 +142,9 @@ router.put("/:id", middleware.checkStatusOwnership, (req, res) => {
 	});
 });
 
+
+
+// Deletes the user's status
 router.delete("/:id", middleware.checkStatusOwnership, (req, res) => {
 	Status.findByIdAndRemove(req.params.id, err => {
 		if (err) {
@@ -126,6 +155,10 @@ router.delete("/:id", middleware.checkStatusOwnership, (req, res) => {
 	});
 });
 
+
+
+// Route to edit a comment that belongs to the logged in user.  Similar to
+// editing a status.
 router.get(
 	"/:id/:commentId/edit",
 	middleware.checkCommentOwnership,
@@ -152,6 +185,9 @@ router.get(
 	}
 );
 
+
+
+// Updates the user's comment
 router.put("/:id/:commentId", middleware.checkCommentOwnership, (req, res) => {
 	Comment.findByIdAndUpdate(
 		req.params.commentId,
@@ -166,6 +202,9 @@ router.put("/:id/:commentId", middleware.checkCommentOwnership, (req, res) => {
 	);
 });
 
+
+
+// Deletes the user's comment
 router.delete(
 	"/:id/:commentId",
 	middleware.checkCommentOwnership,
@@ -180,6 +219,10 @@ router.delete(
 	}
 );
 
+
+
+// Creates a flash message informing the user of any relevant info and
+// redirects to the appropriate route
 function flashMsg(req, res, isSuccess, message, route) {
 	let outcome;
 

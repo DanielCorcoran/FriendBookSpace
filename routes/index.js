@@ -1,3 +1,6 @@
+// This file contains misc routes relevant to the app, such as logging in
+// and registering for an account
+
 const express = require("express"),
 	router = express.Router(),
 	passport = require("passport"),
@@ -5,6 +8,9 @@ const express = require("express"),
 	Status = require("../models/status"),
 	middleware = require("../middleware");
 
+
+
+// Loads the landing page if the user isn't logged in, otherwise loads the feed
 router.get("/", (req, res) => {
 	if (!req.isAuthenticated()) {
 		res.render("landing");
@@ -13,10 +19,16 @@ router.get("/", (req, res) => {
 	res.redirect("/feed");
 });
 
+
+
+// Loads the page to register for an account
 router.get("/register", (req, res) => {
 	res.render("register");
 });
 
+
+
+// This route creates an account
 router.post("/register", (req, res) => {
 	const newUser = new User({ username: req.body.username });
 
@@ -31,6 +43,9 @@ router.post("/register", (req, res) => {
 	});
 });
 
+
+
+// Verifies a user's credentials and logs him in
 router.post(
 	"/login",
 	passport.authenticate("local", {
@@ -39,11 +54,18 @@ router.post(
 	})
 );
 
+
+
+// Logs a user out
 router.get("/logout", (req, res) => {
 	req.logout();
 	flashMsg(req, res, true, "Successfully Logged Out", "/");
 });
 
+
+
+// Route to a specific user's profile page.  This shows all status updates
+// from a certain user, regardless if the logged in user is following her.
 router.get("/users/:userId", middleware.isLoggedIn, (req, res) => {
 	User.findById(req.params.userId, (err, foundUser) => {
 		if (err) {
@@ -58,6 +80,8 @@ router.get("/users/:userId", middleware.isLoggedIn, (req, res) => {
 					flashMsg(req, res, false, "Something went wrong", "/feed");
 				}
 
+        // Determine if the logged in user is following the profile owner,
+        // and allow the user to follow or unfollow accordingly
 				let isFollowing = false;
 
 				User.findOne(
@@ -67,7 +91,7 @@ router.get("/users/:userId", middleware.isLoggedIn, (req, res) => {
 							flashMsg(req, res, false, "Something went wrong", "/feed");
 						}
 
-						// You shouldn't be able to follow yourself
+						// A user shouldn't be able to follow himself
 						if (followedUser || foundUser.equals(req.user)) {
 							isFollowing = true;
 						}
@@ -83,12 +107,17 @@ router.get("/users/:userId", middleware.isLoggedIn, (req, res) => {
 	});
 });
 
+
+
+// This route handles the logic to follow a user
 router.put("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 	User.findById(req.params.userId, (err, userToFollow) => {
 		if (err) {
 			flashMsg(req, res, false, "User not found", "/feed");
 		}
 
+    // Check that the user to be followed isn't the logged in user and
+    // isn't already being followed
 		User.findOne(
 			{ _id: req.user._id, following: userToFollow },
 			(err, followedUser) => {
@@ -110,12 +139,17 @@ router.put("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 	});
 });
 
+
+
+// This route handles the logic to unfollow a user
 router.delete("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 	User.findById(req.params.userId, (err, userToUnfollow) => {
 		if (err) {
 			flashMsg(req, res, false, "User not found", "/feed");
 		}
 
+    // Check to make sure the user to be unfollowed is being followed by
+    // the logged in user
 		User.findOne(
 			{ _id: req.user._id, following: userToUnfollow },
 			(err, foundUser) => {
@@ -137,7 +171,13 @@ router.delete("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 	});
 });
 
+
+
+// Route to the page to find users to follow.  If a specific user was searched
+// for, return any results, otherwise show 20 users for the logged in user
+// to browse.
 router.get("/findusers", middleware.isLoggedIn, (req, res) => {
+  // If a name was searched for, query the database for relevant users
 	if (req.query.username) {
 		User.find(
 			{ username: { $regex: ".*" + req.query.username } },
@@ -169,6 +209,10 @@ router.get("/findusers", middleware.isLoggedIn, (req, res) => {
 	}
 });
 
+
+
+// Creates a list of users to send to the page.  Only includes the users
+// that the logged in user is not already following.
 function generateUserListToSend(userList, req) {
 	const userListToSend = [];
 
@@ -181,6 +225,9 @@ function generateUserListToSend(userList, req) {
 	return userListToSend;
 }
 
+
+
+// Renders the page to find users to follow
 function loadFindUsersPage(res, req, userListToSend) {
 	res.render("findUsers", {
 		currentUser: req.user,
@@ -188,6 +235,10 @@ function loadFindUsersPage(res, req, userListToSend) {
 	});
 }
 
+
+
+// Creates a flash message informing the user of any relevant info and
+// redirects to the appropriate route
 function flashMsg(req, res, isSuccess, message, route) {
 	let outcome;
 
