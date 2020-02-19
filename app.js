@@ -14,7 +14,8 @@ const express = require("express"),
 
 // Include route files
 const feedRoutes = require("./routes/feed"),
-	indexRoutes = require("./routes/index");
+  indexRoutes = require("./routes/index"),
+  userRoutes = require("./routes/user");
 
 // Determine the correct location of the database and connect
 require("dotenv").config();
@@ -62,6 +63,7 @@ app.use((req, res, next) => {
 
 app.use("/feed", feedRoutes);
 app.use(indexRoutes);
+app.use(userRoutes);
 
 // Start the server to which the app will connect
 app.listen(process.env.PORT || 8080, () => {
