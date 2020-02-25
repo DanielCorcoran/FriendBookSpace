@@ -5,7 +5,8 @@ const express = require("express"),
 	router = express.Router(),
 	Status = require("../models/status"),
 	Comment = require("../models/comment"),
-	middleware = require("../middleware");
+  middleware = require("../middleware"),
+	util = require("../util.js");
 
 
 
@@ -14,7 +15,7 @@ const express = require("express"),
 // displays people that the user is following.
 router.get("/", middleware.isLoggedIn, (req, res) => {
 	if (!req.user.following.length) {
-		res.redirect("findUsers");
+		res.redirect("findusers");
 	} else {
     // Load statuses and sort them in reverse chronological order
     Status.find({})
@@ -22,7 +23,7 @@ router.get("/", middleware.isLoggedIn, (req, res) => {
       .populate("comments")
       .exec((err, statuses) => {
         if (err) {
-          flashMsg(req, res, false, "Could not load status feed", "/");
+          util.flashMsg(req, res, false, "Could not load status feed", "/");
         } else {
           const statusesToPass = [];
 
@@ -59,7 +60,7 @@ router.post("/", middleware.isLoggedIn, (req, res) => {
 
 	Status.create(newStatus, err => {
 		if (err) {
-			flashMsg(req, res, false, "Error creating status", "/feed");
+			util.flashMsg(req, res, false, "Error creating status", "/feed");
 		} else {
       res.redirect("/feed");
     }
@@ -74,7 +75,7 @@ router.get("/:id", middleware.isLoggedIn, (req, res) => {
 		.populate("comments")
 		.exec((err, foundStatus) => {
 			if (err) {
-				flashMsg(req, res, false, "Status not found", "back");
+				util.flashMsg(req, res, false, "Status not found", "back");
 			} else {
         res.render("comment", { status: foundStatus, currentUser: req.user });
       }
@@ -87,18 +88,21 @@ router.get("/:id", middleware.isLoggedIn, (req, res) => {
 router.post("/:id", middleware.isLoggedIn, (req, res) => {
 	Status.findById(req.params.id, (err, status) => {
 		if (err) {
-			flashMsg(req, res, false, "Status not found", "/feed");
+			util.flashMsg(req, res, false, "Status not found", "/feed");
 		} else {
       Comment.create(req.body.comment, (err, comment) => {
         if (err) {
-          flashMsg(req, res, false, "Error creating comment", "/feed");
+          util.flashMsg(req, res, false, "Error creating comment", "/feed");
         } else {
-          comment.author.id = req.user._id;
-          comment.author.username = req.user.username;
+          comment.text = req.body.text;
+          comment.author = {
+            id: req.user._id,
+            username: req.user.username
+          }
           comment.save();
           status.comments.push(comment);
           status.save();
-          flashMsg(
+          util.flashMsg(
             req,
             res,
             true,
@@ -119,9 +123,9 @@ router.get("/:id/edit", middleware.checkStatusOwnership, (req, res) => {
 		.populate("comments")
 		.exec((err, foundStatus) => {
 			if (err) {
-				flashMsg(req, res, false, "Status not found", "back");
+				util.flashMsg(req, res, false, "Status not found", "back");
 			} else {
-        res.render("editStatus", {
+        res.render("editstatus", {
           status: foundStatus,
           currentUser: req.user
         });
@@ -135,9 +139,9 @@ router.get("/:id/edit", middleware.checkStatusOwnership, (req, res) => {
 router.put("/:id", middleware.checkStatusOwnership, (req, res) => {
 	Status.findByIdAndUpdate(req.params.id, { text: req.body.text }, err => {
 		if (err) {
-			flashMsg(req, res, false, "Status could not be updated", "/feed");
+			util.flashMsg(req, res, false, "Status could not be updated", "/feed");
 		} else {
-      flashMsg(req, res, true, "Status updated", "/feed");
+      util.flashMsg(req, res, true, "Status updated", "/feed");
     }
 	});
 });
@@ -149,11 +153,11 @@ router.delete("/:id", middleware.checkStatusOwnership, (req, res) => {
   // First, delete any comments on the status
   Status.findById(req.params.id, (err, foundStatus) => {
     if (err) {
-			flashMsg(req, res, false, "Status could not be deleted", "back");
+			util.flashMsg(req, res, false, "Status could not be deleted", "back");
     } else {
       Comment.deleteMany({_id: { $in: foundStatus.comments}}, err => {
         if (err) {
-          flashMsg(req, res, false, "Something went wrong", "back");
+          util.flashMsg(req, res, false, "Something went wrong", "back");
         }
       });
     }
@@ -161,9 +165,9 @@ router.delete("/:id", middleware.checkStatusOwnership, (req, res) => {
   
 	Status.findByIdAndRemove(req.params.id, err => {
 		if (err) {
-			flashMsg(req, res, false, "Status could not be deleted", "back");
+			util.flashMsg(req, res, false, "Status could not be deleted", "back");
 		} else {
-      flashMsg(req, res, true, "Status deleted", "/feed");
+      util.flashMsg(req, res, true, "Status deleted", "/feed");
     }
 	});
 });
@@ -178,15 +182,15 @@ router.get(
 	(req, res) => {
 		Comment.findById(req.params.commentId, (err, foundComment) => {
 			if (err) {
-				flashMsg(req, res, false, "Comment not found", "back");
+				util.flashMsg(req, res, false, "Comment not found", "back");
 			} else {
         Status.findById(req.params.id)
           .populate("comments")
           .exec((err, foundStatus) => {
             if (err) {
-              flashMsg(req, res, false, "Status not found", "back");
+              util.flashMsg(req, res, false, "Status not found", "back");
             } else {
-              res.render("editComment", {
+              res.render("editcomment", {
                 status: foundStatus,
                 commentToEdit: foundComment,
                 currentUser: req.user
@@ -207,9 +211,9 @@ router.put("/:id/:commentId", middleware.checkCommentOwnership, (req, res) => {
 		{ text: req.body.text },
 		err => {
 			if (err) {
-				flashMsg(req, res, false, "Comment could not be updated", "back");
+				util.flashMsg(req, res, false, "Comment could not be updated", "back");
 			} else {
-        flashMsg(req, res, true, "Comment updated", "/feed/" + req.params.id);
+        util.flashMsg(req, res, true, "Comment updated", "/feed/" + req.params.id);
       }
 		}
 	);
@@ -224,29 +228,12 @@ router.delete(
 	(req, res) => {
 		Comment.findByIdAndRemove(req.params.commentId, err => {
 			if (err) {
-				flashMsg(req, res, false, "Comment could not be deleted", "back");
+				util.flashMsg(req, res, false, "Comment could not be deleted", "back");
 			} else {
-        flashMsg(req, res, true, "Comment deleted", "/feed");
+        util.flashMsg(req, res, true, "Comment deleted", "/feed/" + req.params.id);
       }
 		});
 	}
 );
-
-
-
-// Creates a flash message informing the user of any relevant info and
-// redirects to the appropriate route
-function flashMsg(req, res, isSuccess, message, route) {
-	let outcome;
-
-	if (isSuccess) {
-		outcome = "success";
-	} else {
-		outcome = "error";
-	}
-
-	req.flash(outcome, message);
-	res.redirect(route);
-}
 
 module.exports = router;

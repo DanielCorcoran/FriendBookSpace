@@ -6,7 +6,8 @@ const express = require("express"),
 	router = express.Router(),
 	User = require("../models/user"),
 	Status = require("../models/status"),
-	middleware = require("../middleware");
+	middleware = require("../middleware"),
+	util = require("../util.js");
 
 
 
@@ -15,14 +16,14 @@ const express = require("express"),
 router.get("/users/:userId", middleware.isLoggedIn, (req, res) => {
 	User.findById(req.params.userId, (err, foundUser) => {
 		if (err) {
-			flashMsg(req, res, false, "User not found", "/feed");
+			util.flashMsg(req, res, false, "User not found", "/feed");
 		} else {
 			Status.find({ "author.id": foundUser })
 				.sort({ createdAt: -1 })
 				.populate("comments")
 				.exec((err, statuses) => {
 					if (err) {
-						flashMsg(req, res, false, "Something went wrong", "/feed");
+						util.flashMsg(req, res, false, "Something went wrong", "/feed");
 					} else {
 						// Determine if the logged in user is following the profile owner,
 						// and allow the user to follow or unfollow accordingly
@@ -32,7 +33,7 @@ router.get("/users/:userId", middleware.isLoggedIn, (req, res) => {
 							{ _id: req.user._id, following: req.params.userId },
 							(err, followedUser) => {
 								if (err) {
-									flashMsg(req, res, false, "Something went wrong", "/feed");
+									util.flashMsg(req, res, false, "Something went wrong", "/feed");
 								} else {
 									// A user shouldn't be able to follow himself
 									if (followedUser || foundUser.equals(req.user)) {
@@ -59,7 +60,7 @@ router.get("/users/:userId", middleware.isLoggedIn, (req, res) => {
 router.put("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 	User.findById(req.params.userId, (err, userToFollow) => {
 		if (err) {
-			flashMsg(req, res, false, "User not found", "/feed");
+			util.flashMsg(req, res, false, "User not found", "/feed");
 		} else {
 			// Check that the user to be followed isn't the logged in user and
 			// isn't already being followed
@@ -67,7 +68,7 @@ router.put("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 				{ _id: req.user._id, following: userToFollow },
 				(err, followedUser) => {
 					if (err) {
-						flashMsg(req, res, false, "Something went wrong", "/feed");
+						util.flashMsg(req, res, false, "Something went wrong", "/feed");
 					} else {
 						if (!followedUser && !userToFollow.equals(req.user)) {
 							const successMsg =
@@ -75,9 +76,9 @@ router.put("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 
 							req.user.following.push(userToFollow);
 							req.user.save();
-							flashMsg(req, res, true, successMsg, "/feed");
+							util.flashMsg(req, res, true, successMsg, "/feed");
 						} else {
-							flashMsg(req, res, false, "Could not follow user", "/feed");
+							util.flashMsg(req, res, false, "Could not follow user", "/feed");
 						}
 					}
 				}
@@ -92,7 +93,7 @@ router.put("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 router.delete("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 	User.findById(req.params.userId, (err, userToUnfollow) => {
 		if (err) {
-			flashMsg(req, res, false, "User not found", "/feed");
+			util.flashMsg(req, res, false, "User not found", "/feed");
 		} else {
 			// Check to make sure the user to be unfollowed is being followed by
 			// the logged in user
@@ -100,16 +101,16 @@ router.delete("/follow/:userId", middleware.isLoggedIn, (req, res) => {
 				{ _id: req.user._id, following: userToUnfollow },
 				(err, foundUser) => {
 					if (err) {
-						flashMsg(req, res, false, "Something went wrong", "/feed");
+						util.flashMsg(req, res, false, "Something went wrong", "/feed");
 					} else {
 						if (foundUser) {
 							const successMsg = "You unfollowed " + userToUnfollow.username;
 
 							req.user.following.pull(req.params.userId);
 							req.user.save();
-							flashMsg(req, res, true, successMsg, "/feed");
+							util.flashMsg(req, res, true, successMsg, "/feed");
 						} else {
-							flashMsg(req, res, false, "Could not unfollow user", "/feed");
+							util.flashMsg(req, res, false, "Could not unfollow user", "/feed");
 						}
 					}
 				}
@@ -130,10 +131,10 @@ router.get("/findusers", middleware.isLoggedIn, (req, res) => {
 			{ username: { $regex: ".*" + req.query.username, $options: "i" } },
 			(err, userList) => {
 				if (err) {
-					flashMsg(req, res, false, "Something went wrong", "/feed");
+					util.flashMsg(req, res, false, "Something went wrong", "/feed");
 				} else {
 					if (!userList.length) {
-						flashMsg(req, res, false, "No users found", "/findusers");
+						util.flashMsg(req, res, false, "No users found", "/findusers");
 					} else {
 						const userListToSend = generateUserListToSend(userList, req);
 
@@ -147,7 +148,7 @@ router.get("/findusers", middleware.isLoggedIn, (req, res) => {
 			.limit(20)
 			.exec((err, userList) => {
 				if (err) {
-					flashMsg(req, res, false, "Could not load user list", "/feed");
+					util.flashMsg(req, res, false, "Could not load user list", "/feed");
 				} else {
 					const userListToSend = generateUserListToSend(userList, req);
 
@@ -177,27 +178,10 @@ function generateUserListToSend(userList, req) {
 
 // Renders the page to find users to follow
 function loadFindUsersPage(res, req, userListToSend) {
-	res.render("findUsers", {
+	res.render("findusers", {
 		currentUser: req.user,
 		userList: userListToSend
 	});
-}
-
-
-
-// Creates a flash message informing the user of any relevant info and
-// redirects to the appropriate route
-function flashMsg(req, res, isSuccess, message, route) {
-	let outcome;
-
-	if (isSuccess) {
-		outcome = "success";
-	} else {
-		outcome = "error";
-	}
-
-	req.flash(outcome, message);
-	res.redirect(route);
 }
 
 module.exports = router;

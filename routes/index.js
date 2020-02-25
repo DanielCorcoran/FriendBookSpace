@@ -4,7 +4,8 @@
 const express = require("express"),
 	router = express.Router(),
 	passport = require("passport"),
-	User = require("../models/user");
+	User = require("../models/user"),
+	util = require("../util.js");
 
 
 
@@ -32,10 +33,10 @@ router.post("/register", (req, res) => {
 
 	User.register(newUser, req.body.password, err => {
 		if (err) {
-			flashMsg(req, res, false, err.message, "/register");
+			util.flashMsg(req, res, false, err.message, "/register");
 		} else {
       passport.authenticate("local")(req, res, () => {
-        flashMsg(req, res, true, "Welcome to FriendBookSpace!", "/feed");
+        util.flashMsg(req, res, true, "Welcome to FriendBookSpace!", "/feed");
       });
 		}
 	});
@@ -57,24 +58,7 @@ router.post(
 // Logs a user out
 router.get("/logout", (req, res) => {
 	req.logout();
-	flashMsg(req, res, true, "Successfully Logged Out", "/");
+	util.flashMsg(req, res, true, "Successfully Logged Out", "/");
 });
-
-
-
-// Creates a flash message informing the user of any relevant info and
-// redirects to the appropriate route
-function flashMsg(req, res, isSuccess, message, route) {
-	let outcome;
-
-	if (isSuccess) {
-		outcome = "success";
-	} else {
-		outcome = "error";
-	}
-
-	req.flash(outcome, message);
-	res.redirect(route);
-}
 
 module.exports = router;
