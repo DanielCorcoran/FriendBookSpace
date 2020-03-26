@@ -125,7 +125,7 @@ router.get("/:id/edit", middleware.checkStatusOwnership, (req, res) => {
 			if (err) {
 				util.flashMsg(req, res, false, "Status not found", "back");
 			} else {
-        res.render("editstatus", {
+        res.render("editStatus", {
           status: foundStatus,
           currentUser: req.user
         });
@@ -190,7 +190,7 @@ router.get(
             if (err) {
               util.flashMsg(req, res, false, "Status not found", "back");
             } else {
-              res.render("editcomment", {
+              res.render("editComment", {
                 status: foundStatus,
                 commentToEdit: foundComment,
                 currentUser: req.user

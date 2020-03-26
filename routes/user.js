@@ -178,7 +178,7 @@ function generateUserListToSend(userList, req) {
 
 // Renders the page to find users to follow
 function loadFindUsersPage(res, req, userListToSend) {
-	res.render("findusers", {
+	res.render("findUsers", {
 		currentUser: req.user,
 		userList: userListToSend
 	});
